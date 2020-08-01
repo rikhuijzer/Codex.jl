@@ -4,9 +4,14 @@ export
 
 """
     dirparent(path)::String
-    dirparent(path, [n])::String
+    dirparent(path, n)::String
 
 Returns the parent or `n`-th parent directory for `path`, where `path` can be a file or directory.
+
+# Examples
+```@example
+dirparent("/a/b/c")
+```
 """
 dirparent(path)::String = splitdir(endswith(path, '/') ? path[1:end-1] : path)[1]
 dirparent(path, n)::String = ∘(repeat([dirparent], n)...)(path)
