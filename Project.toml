@@ -2,3 +2,6 @@ name = "Codex"
 uuid = "58f28e66-b97d-4550-b9c5-bacaf0313525"
 authors = ["Rik <rik@huijzer.xyz>"]
 version = "0.1.0"
+
+[deps]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
