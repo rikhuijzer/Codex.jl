@@ -1,0 +1,5 @@
+# Codex
+
+```@autodocs
+Modules = [Codex]
+```
