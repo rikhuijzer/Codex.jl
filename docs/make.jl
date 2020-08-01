@@ -3,7 +3,8 @@ using Codex
 
 makedocs(sitename = "Codex.jl",
     pages = [
-        "Index" => "index.md"
+        "Index" => "index.md",
+        "TransformExport" => "transformexport.md"
     ]
 )
 

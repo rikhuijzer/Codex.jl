@@ -2,5 +2,6 @@ using Codex
 using Test
 
 @testset "Codex" begin
-    @test Codex.greet() == "Hello world"
+    include("utils.jl")
+    include("transformexport.jl")
 end
