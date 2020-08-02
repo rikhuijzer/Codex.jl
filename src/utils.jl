@@ -1,6 +1,9 @@
 export 
     dirparent,
-    project_root
+    project_root,
+    rmextension
+
+rmextension(s::String)::String = s[1:findlast('.', s)-1]
 
 """
     dirparent(path)::String
@@ -8,7 +11,6 @@ export
 
 Returns the parent or `n`-th parent directory for `path`, where `path` can be a file or directory.
 
-# Examples
 ```@example
 dirparent("/a/b/c")
 ```
