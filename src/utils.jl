@@ -1,9 +1,18 @@
 export 
+    apply,
     dirparent,
     project_root,
     rmextension
 
-rmextension(s::String)::String = s[1:findlast('.', s)-1]
+"""
+    apply(functions, object)
+    apply(functions)
+
+Applies `functions` to `object`.
+The functions are applied in order, unlike the behaviour of function composition.
+"""
+apply(fns, obj) = ∘(reverse(fns)...)(obj)
+apply(fns) = obj -> apply(fns, obj)
 
 """
     dirparent(path)::String
@@ -25,3 +34,5 @@ Returns root directory of the current Module.
 This is usually also the root of the Git repository.
 """
 project_root()::String = dirparent(pathof(Codex), 2)
+
+rmextension(s::String)::String = s[1:findlast('.', s)-1]
