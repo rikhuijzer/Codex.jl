@@ -39,12 +39,12 @@ rm_empty_rows!(df::DataFrame) = dropmissing!(df, :filled_out_by_id)
 rename_id_col!(df::DataFrame) = rename!(df, Dict(:filled_out_by_id => :id))
 
 """
-    simplify(df)
+    simplify(df)::DataFrame
 
 Renames id column after removing extraneous rows and columns, that is, removes empty rows and 
 removes columns such as `protocol_subscription_id`, `open_from` and `v2_1_timing`.
 """
-simplify(df::DataFrame) = DataFrame(
+simplify(df::DataFrame)::DataFrame = DataFrame(
     apply([rm_timing!, rm_timestamps!, rm_boring_foreign_keys!, rm_empty_rows!, rename_id_col!], df)
 )
 
@@ -62,9 +62,9 @@ end
 substitute_names(with) = df -> substitute_names(df, with)
 
 """
-    process(in_dir, out_dir; functions)
+    process(in_dir, out_dir; fns)
 
-Processes the responses from the export folder, applies the `functions` and places the files at `out_dir`.
+Processes the responses from the export folder, applies the functions `fns` and places the files at `out_dir`.
 """
 function process(in_dir, out_dir; fns=nothing)
     # mkpath(out_dir)

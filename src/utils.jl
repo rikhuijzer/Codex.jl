@@ -5,12 +5,13 @@ export
     rmextension
 
 """
-    apply(functions, object)
-    apply(functions)::Function
+    apply(fns, obj)
+    apply(fns)::Function
 
-Applies `functions` to `object`.
+Apply functions `fns` to object `obj`.
 The functions are applied in order, unlike the behaviour of function composition.
-For partial declarations in `Base`, see issue #35052 or `endswith(suffix)`.
+Also defines partial function.
+(For partial declarations in `Base`, see issue #35052 or `endswith(suffix)`.)
 """
 apply(fns, obj) = ∘(reverse(fns)...)(obj)
 apply(fns) = obj -> apply(fns, obj)
