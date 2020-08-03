@@ -13,7 +13,7 @@ export
 
 """
     read_csv(path; delim)::DataFrame
-    read_csv(; delim)::Function
+    read_csv(delim=delim)::Function
 
 Copies CSV at `path` into memory.
 Also defines partial function.
