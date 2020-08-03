@@ -7,7 +7,7 @@ using DataFrames
 export 
     read_csv,
     responses,
-    trans
+    process
 
 """
     read_csv(path; delim)::DataFrame
@@ -38,6 +38,9 @@ function responses(dir::String)::Dict{String,DataFrame}
     dfs = map(read_csv(delim=';'), paths)
     Dict(zip(names, dfs))
 end
+
+remove_timing(df::DataFrame)::DataFrame = select(df, Not(r".+\_timing"))
+remove_timestamps(df::DataFrame)::DataFrame = select(df, Not(r"
 
 """
     process(in_dir, out_dir; functions)
