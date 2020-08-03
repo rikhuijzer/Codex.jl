@@ -8,23 +8,19 @@ export
     read_csv,
     responses,
     simplify,
+    substitute_names,
     process
 
 """
     read_csv(path; delim)::DataFrame
+    read_csv(; delim)::Function
 
 Copies CSV at `path` into memory.
+Also defines partial function.
+For partial declarations in `Base`, see issue #35052 or `endswith(suffix)`.
 """
 read_csv(path; delim=',')::DataFrame = CSV.File(path, delim=delim) |> DataFrame!
-
-"""
-    read_csv(;delim)::DataFrame
-
-Create a function that reads a CSV with `delim`, that is,
-a function equivalent to `read_csv(path) -> read_csv(path; delim)`.
-For similar partial function declarations in `Base`, see issue #35052 or `endswith(suffix)`.
-"""
-read_csv(;delim) = path -> read_csv(path; delim)
+read_csv(; delim) = path -> read_csv(path; delim)
 
 """
     responses(dir::String)::Dict{String,DataFrame}
@@ -55,6 +51,19 @@ removes columns such as `protocol_subscription_id`, `open_from` and `v2_1_timing
 simplify(df::DataFrame) = DataFrame(
     apply([rm_timing!, rm_timestamps!, rm_boring_foreign_keys!, rm_empty_rows!, rename_id_col!], df)
 )
+
+"""
+    substitute_names(df, with::DataFrame)::DataFrame
+    substitute_names(with)::Function
+
+Replaces `person_id`s by the first name as listed in `with`.
+"""
+function substitute_names(df, with::DataFrame)::DataFrame
+    mapping = Dict(zip(with.person_id, with.first_name))
+    select!(df, :id => ByRow(id -> mapping[id]), Not(:id))
+    rename!(df, Dict(:id_function => :id))
+end
+substitute_names(with) = df -> substitute_names(df, with)
 
 """
     process(in_dir, out_dir; functions)

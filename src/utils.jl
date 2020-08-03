@@ -6,7 +6,7 @@ export
 
 """
     apply(functions, object)
-    apply(functions)
+    apply(functions)::Function
 
 Applies `functions` to `object`.
 The functions are applied in order, unlike the behaviour of function composition.

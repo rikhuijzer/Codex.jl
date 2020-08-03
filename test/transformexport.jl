@@ -18,5 +18,9 @@ using Test
 
     df = read_csv(joinpath(export_dir, "responses", "first.csv"), delim=';')
     @test size(df) == (3, 17)
-    @test TransformExport.simplify(df) == DataFrame(:id => "aaaa", :v2 => 2, :v3 => 3)
+    simple = simplify(df) 
+    @test simple == DataFrame(:id => "aaaa", :v2 => 2, :v3 => 3)
+
+    people = DataFrame(:person_id => ["aaaa", "aaab"], :first_name => ["0001", "0002"])
+    @test substitute_names(simple, people) == DataFrame(:id => "0001", :v2 => 2, :v3 => 3)
 end
