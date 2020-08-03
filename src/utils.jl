@@ -10,6 +10,7 @@ export
 
 Applies `functions` to `object`.
 The functions are applied in order, unlike the behaviour of function composition.
+For partial declarations in `Base`, see issue #35052 or `endswith(suffix)`.
 """
 apply(fns, obj) = ∘(reverse(fns)...)(obj)
 apply(fns) = obj -> apply(fns, obj)

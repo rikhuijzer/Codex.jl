@@ -16,7 +16,7 @@ using Test
     @test TransformExport.rm_empty_rows!(DataFrame(:filled_out_by_id => [1, missing])) == DataFrame(:filled_out_by_id => 1)
     @test TransformExport.rename_id_col!(DataFrame(:filled_out_by_id => 1)) == DataFrame(:id => 1)
 
-    df = read_csv(joinpath(export_dir, "responses", "first.csv"), delim=';')
+    df = read_csv(joinpath(export_dir, "responses", "first.csv"); delim=';')
     @test size(df) == (3, 17)
     simple = simplify(df) 
     @test simple == DataFrame(:id => "aaaa", :v2 => 2, :v3 => 3)

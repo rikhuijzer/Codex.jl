@@ -13,14 +13,10 @@ export
 
 """
     read_csv(path; delim)::DataFrame
-    read_csv(delim=delim)::Function
 
 Copies CSV at `path` into memory.
-Also defines partial function.
-For partial declarations in `Base`, see issue #35052 or `endswith(suffix)`.
 """
 read_csv(path; delim=',')::DataFrame = CSV.File(path, delim=delim) |> DataFrame!
-read_csv(; delim) = path -> read_csv(path; delim)
 
 """
     responses(dir::String)::Dict{String,DataFrame}
@@ -32,7 +28,7 @@ function responses(dir::String)::Dict{String,DataFrame}
     files = filter(file -> endswith(file, ".csv"), readdir(dir))
     names = map(rmextension, files)
     paths = map(file -> joinpath(dir, file), files)
-    dfs = map(read_csv(delim=';'), paths)
+    dfs = map(path -> read_csv(path, delim=';'), paths)
     Dict(zip(names, dfs))
 end
 
