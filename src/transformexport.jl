@@ -35,6 +35,7 @@ end
 rm_timing!(df::DataFrame) = select!(df, Not(r".+\_timing"))
 rm_timestamps!(df::DataFrame) = select!(df, Not(r".+\_(from|at)"))
 rm_boring_foreign_keys!(df::DataFrame) = select!(df, Not(r".+\_(?<!by_)id"))
+rm_locale!(df::DataFrame) = "locale" in names(df) ? select!(df, Not("locale")) : df
 rm_empty_rows!(df::DataFrame) = dropmissing!(df, :filled_out_by_id)
 rename_id_col!(df::DataFrame) = rename!(df, Dict(:filled_out_by_id => :id))
 
@@ -45,7 +46,7 @@ Renames id column after removing extraneous rows and columns, that is, removes e
 removes columns such as `protocol_subscription_id`, `open_from` and `v2_1_timing`.
 """
 simplify(df::DataFrame)::DataFrame = DataFrame(
-    apply([rm_timing!, rm_timestamps!, rm_boring_foreign_keys!, rm_empty_rows!, rename_id_col!], df)
+    apply([rm_timing!, rm_timestamps!, rm_boring_foreign_keys!, rm_locale!, rm_empty_rows!, rename_id_col!], df)
 )
 
 """
