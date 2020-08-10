@@ -11,16 +11,16 @@ using Test
     @test "second" in keys(dfs)
 
     @test TransformExport.rm_timing!(DataFrame(:v1_timing => 1)) == DataFrame()
-    @test TransformExport.rm_timestamps!(DataFrame(:opened_at => 1, :open_from => 2)) == DataFrame()
-    @test TransformExport.rm_boring_foreign_keys!(DataFrame(:t_for_id => 1, :t_by_id => 2)) == DataFrame(:t_by_id => 2)
-    @test TransformExport.rm_empty_rows!(DataFrame(:filled_out_by_id => [1, missing])) == DataFrame(:filled_out_by_id => 1)
-    @test TransformExport.rename_id_col!(DataFrame(:filled_out_by_id => 1)) == DataFrame(:id => 1)
+    @test TransformExport.rm_boring_timestamps!(DataFrame(completed_at = 0, opened_at = 1, open_from = 2)) == DataFrame(completed_at = 0)
+    @test TransformExport.rm_boring_foreign_keys!(DataFrame(t_for_id = 1, t_by_id = 2)) == DataFrame(t_by_id = 2)
+    @test TransformExport.rm_empty_rows!(DataFrame(filled_out_by_id = [1, missing])) == DataFrame(filled_out_by_id = 1)
+    @test TransformExport.rename_id_col!(DataFrame(filled_out_by_id = 1)) == DataFrame(id = 1)
 
     df = read_csv(joinpath(export_dir, "responses", "first.csv"); delim=';')
     @test size(df) == (3, 17)
     simple = simplify(df) 
-    @test simple == DataFrame(:id => "aaaa", :v2 => 2, :v3 => 3)
+    @test simple == DataFrame(id = "aaaa", completed_at = "22-08-2020 14:49:47", v2 = 2, v3 = 3)
 
     people = DataFrame(:person_id => ["aaaa", "aaab"], :first_name => ["0001", "0002"])
-    @test substitute_names(simple, people) == DataFrame(:id => "0001", :v2 => 2, :v3 => 3)
+    @test substitute_names(simple, people) == DataFrame(id = "0001", completed_at = "22-08-2020 14:49:47", v2 = 2, v3 = 3)
 end
