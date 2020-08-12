@@ -1,11 +1,12 @@
-using Codex
-using Codex.TransformExport
+import Codex
+import Codex.TransformExport
+
 using DataFrames
 using Test
 
 @testset "TransformExport" begin
     export_dir = joinpath(project_root(), "test", "data", "2020-08")
-    dfs = responses(export_dir)
+    dfs = TransformExport.responses(export_dir)
     @test typeof(dfs) == Dict{String,DataFrame}
     @test "first" in keys(dfs)
     @test "second" in keys(dfs)
@@ -16,11 +17,14 @@ using Test
     @test TransformExport.rm_empty_rows!(DataFrame(filled_out_by_id = [1, missing])) == DataFrame(filled_out_by_id = 1)
     @test TransformExport.rename_id_col!(DataFrame(filled_out_by_id = 1)) == DataFrame(id = 1)
 
-    df = read_csv(joinpath(export_dir, "responses", "first.csv"); delim=';')
+    df = TransformExport.read_csv(joinpath(export_dir, "responses", "first.csv"); delim=';')
+    @test string(TransformExport.parsedatetime(df[1, :completed_at])) == "2020-08-22T14:49:47"
+
     @test size(df) == (3, 17)
-    simple = simplify(df) 
+    simple = TransformExport.simplify(df) 
     @test simple == DataFrame(id = "aaaa", completed_at = "22-08-2020 14:49:47", v2 = 2, v3 = 3)
 
     people = DataFrame(:person_id => ["aaaa", "aaab"], :first_name => ["0001", "0002"])
-    @test substitute_names(simple, people) == DataFrame(id = "0001", completed_at = "22-08-2020 14:49:47", v2 = 2, v3 = 3)
+    expected = DataFrame(id = "0001", completed_at = "22-08-2020 14:49:47", v2 = 2, v3 = 3)
+    @test TransformExport.substitute_names(simple, people) == expected
 end

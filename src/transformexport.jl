@@ -3,6 +3,7 @@ module TransformExport
 using Codex
 using CSV
 using DataFrames
+using Dates
 
 export 
     read_csv,
@@ -61,6 +62,13 @@ function substitute_names(df, with::DataFrame)::DataFrame
     rename!(df, Dict(:id_function => :id))
 end
 substitute_names(with) = df -> substitute_names(df, with)
+
+"""
+    parsedatetime(str)::DateTime
+
+Parse a date and time string from the export to a Julia DateTime object.
+"""
+parsedatetime(s) = DateTime(s, "d-m-y H:M:S")
 
 """
     process(in_dir, out_dir; fns)
