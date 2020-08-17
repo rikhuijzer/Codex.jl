@@ -76,7 +76,7 @@ _rm_descriptions(col)::Array{Int,1} = parse.(Int, map(_rm_description, col))
 
 Return whether the column `col` contains descriptions.
 """
-_contains_description(col)::Bool = hastrue(contains(_description_regex()), col)
+_contains_description(col)::Bool = any(contains(_description_regex()), col)
 
 """
     rm_descriptions(df)::DataFrame
