@@ -51,6 +51,55 @@ simplify(df::DataFrame)::DataFrame = DataFrame(
 )
 
 """
+    _description_regex()
+
+Return regex for matching a description such as `1 (lorem)` or `2 <br /> (ipsum)`.
+"""
+_description_regex() = r"([0-9]+) (<br\w*\/> )?\([^\)]+\)"
+
+"""
+    _rm_description(e::String)::String
+
+Apply regex replace on element `e`.
+"""
+_rm_description(e::String)::String = replace(e, _description_regex() => s"\1")
+
+"""
+    _rm_descriptions(col)::Array{Int,1}
+
+Apply a regex replace and type conversion to all elements of the column `col`. 
+"""
+_rm_descriptions(col)::Array{Int,1} = parse.(Int, map(_rm_description, col))
+
+"""
+    _contains_description(col)::Bool
+
+Return whether the column `col` contains descriptions.
+"""
+_contains_description(col)::Bool = hastrue(contains(_description_regex()), col)
+
+"""
+    rm_descriptions(df)::DataFrame
+
+Find responses containing a description, for example `6 (heel erg)`, and remove the description.
+"""
+function rm_descriptions(df)::DataFrame
+    df = DataFrame(df)
+    # Not using in-place replacement since the type has to change.
+    function map_col(i::Number)::Array
+        col = df[!,1]
+        typeof(col) == Array{String,1} ? _rm_descriptions(col) : col
+    end
+    for i in 1:ncol(df)
+        col = df[!, i]
+        if _contains_description(col)
+            df[!, i] = _rm_descriptions(col)
+        end
+    end
+    df
+end
+
+"""
     substitute_names(df, with::DataFrame)::DataFrame
     substitute_names(with)::Function
 

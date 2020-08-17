@@ -1,6 +1,8 @@
 export 
     apply,
     dirparent,
+    hastrue,
+    nofalse,
     project_root,
     rmextension
 
@@ -38,3 +40,17 @@ This is usually also the root of the Git repository.
 project_root()::String = dirparent(pathof(Codex), 2)
 
 rmextension(s::String)::String = s[1:findlast('.', s)-1]
+
+"""
+    hastrue(predicate::Function, A)
+
+Return whether array `A` contains at least one element for which the `predicate` returns true.
+"""
+hastrue(predicate::Function, A) = findfirst(predicate, A) != nothing
+
+"""
+    nofalse(predicate::Function, A)
+
+Return whether array `A` contains no elements for which the `predicate` returns false.
+"""
+nofalse(predicate::Function, A) = findfirst(!predicate, A) == nothing
