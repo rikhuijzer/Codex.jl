@@ -10,7 +10,9 @@ export
     responses,
     simplify,
     substitute_names,
-    process
+    names2usernames,
+    process,
+    rm_descriptions
 
 """
     read_csv(path; delim)::DataFrame
@@ -127,6 +129,10 @@ Processes the responses from the export folder, applies the functions `fns` and 
 function process(in_dir, out_dir; fns=nothing)
     # mkpath(out_dir)
     out_dir
+end
+
+function names2usernames(df, username_id)::DataFrame
+    df
 end
 
 end # module
