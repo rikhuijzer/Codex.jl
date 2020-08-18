@@ -52,7 +52,7 @@ Sets all elements of `a` for which no match is found to `missing`.
 """
 function map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol; missing=nothing)::Array
     if typeof(a) != typeof(df[!, from])
-        throw(TypeError(:map_by_df, "trying to map `a` with `from`", typeof(a), typeof(df[!, from])))
+        @warn TypeError(:map_by_df, "trying to map `a` with `from`", typeof(a), typeof(df[!, from]))
     end
     function map_element(e)
         filtered = filter(row -> row[from] == e, df)

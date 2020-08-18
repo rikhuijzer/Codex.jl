@@ -18,5 +18,4 @@ using Test
 
     df = DataFrame(from = [1], to = ["one"])
     @test map_by_df([1, 2], df, :from, :to; missing="miss") == ["one", "miss"]
-    @test_throws TypeError map_by_df([1.0], df, :from, :to)
 end
