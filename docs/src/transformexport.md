@@ -6,12 +6,12 @@ This module is used to transform the data exported from the backend.
 
 ```@autodocs
 Modules = [Codex.TransformExport]
-Public = true
+Private = false
 ```
 
 ## Private 
 
 ```@autodocs
 Modules = [Codex.TransformExport]
-Private = true
+Public = false
 ```
