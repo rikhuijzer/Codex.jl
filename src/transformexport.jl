@@ -131,21 +131,8 @@ function process(in_dir, out_dir; fns=nothing)
     out_dir
 end
 
-"""
-    map_col(df::DataFrame, col::Symbol, with::DataFrame, from::Symbol, to::Symbol)::DataFrame
-
-Change column `col` of `df` by mapping it from `from` to `to` in `with`.
-"""
-function map_col(df, colname::Symbol, with::DataFrame, by::Symbol)::DataFrame
-    df
-end
-
 function names2usernames(df, id_username)::DataFrame
-    # TODO: Use map_col.
-
-    @show df
-    @show id_username
-         
+    df.id = map_by_df(df.id, id_username, :id, :username; missing="username_not_found")
     df
 end
 

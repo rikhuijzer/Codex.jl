@@ -1,7 +1,10 @@
+using DataFrames
+
 export 
     apply,
     dirparent,
     hastrue,
+    map_by_df,
     nofalse,
     project_root,
     rmextension
@@ -40,3 +43,20 @@ This is usually also the root of the Git repository.
 project_root()::String = dirparent(pathof(Codex), 2)
 
 rmextension(s::String)::String = s[1:findlast('.', s)-1]
+
+"""
+    map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol; missing=nothing)::Array
+
+Map array `a` by using arrays `from` and `to`.
+Sets all elements of `a` for which no match is found to `missing`. 
+"""
+function map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol; missing=nothing)::Array
+    if typeof(a) != typeof(df[!, from])
+        throw(TypeError(:map_by_df, "trying to map `a` with `from`", typeof(a), typeof(df[!, from])))
+    end
+    function map_element(e)
+        filtered = filter(row -> row[from] == e, df)
+        nrow(filtered) == 1 ? first(filtered)[to] : missing
+    end
+    map(map_element, a)
+end

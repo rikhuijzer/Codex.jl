@@ -39,7 +39,6 @@ using Test
     with_names = DataFrame(id = "0001", completed_at = "22-08-2020 14:49:47", v2 = "2 <br/> (lorem)", v3 = "3 (heel erg)")
     @test TransformExport.substitute_names(simple, people) == with_names
 
-    with_usernames = DataFrame(id = "jackson", completed_at = "22-08-2020 14:49:47", v2 = "2 <br/> (lorem)", v3 = "3 (heel erg)")
     id_username = TransformExport.read_csv(joinpath(export_dir, "id-username.csv"))
     @test TransformExport.names2usernames(with_names, id_username)[!, :id] == ["jackson"]
 end
