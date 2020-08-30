@@ -17,5 +17,5 @@ using Test
     @test map(apply([x -> x + 1]), [1]) == [2]
 
     df = DataFrame(from = [1], to = ["one"])
-    @test map_by_df([1, 2], df, :from, :to; missing="miss") == ["one", "miss"]
+    @test map_by_df([1, 2], df, :from, :to) == ["one", 2]
 end

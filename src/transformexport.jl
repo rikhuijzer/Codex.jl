@@ -132,7 +132,7 @@ function process(in_dir, out_dir; fns=nothing)
 end
 
 function names2usernames(df, id_username)::DataFrame
-    df.id = map_by_df(df.id, id_username, :id, :username; missing="username_not_found")
+    df.id = map_by_df(df.id, id_username, :id, :username)
     df
 end
 

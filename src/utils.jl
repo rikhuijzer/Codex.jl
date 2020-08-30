@@ -48,15 +48,15 @@ rmextension(s::String)::String = s[1:findlast('.', s)-1]
     map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol; missing=nothing)::Array
 
 Map array `a` by using arrays `from` and `to`.
-Sets all elements of `a` for which no match is found to `missing`. 
+Leaving all elements of `a` for which no match is found unchanged.
 """
-function map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol; missing=nothing)::Array
+function map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol)::Array
     if typeof(a) != typeof(df[!, from])
         @warn TypeError(:map_by_df, "trying to map `a` with `from`", typeof(a), typeof(df[!, from]))
     end
     function map_element(e)
         filtered = filter(row -> row[from] == e, df)
-        nrow(filtered) == 1 ? first(filtered)[to] : missing
+        nrow(filtered) == 1 ? first(filtered)[to] : e
     end
     map(map_element, a)
 end
