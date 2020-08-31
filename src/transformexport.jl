@@ -64,21 +64,30 @@ _description_regex() = r"([0-9]+) (<br\w*\/> )?\([^\)]+\)"
 
 Apply regex replace on element `e`.
 """
-_rm_description(e::String)::String = replace(e, _description_regex() => s"\1")
+_rm_description(e) = e === missing ? e : parse(Int, replace(e, _description_regex() => s"\1"))
 
 """
     _rm_descriptions(col)::Array{Int,1}
 
 Apply a regex replace and type conversion to all elements of the column `col`. 
 """
-_rm_descriptions(col)::Array{Int,1} = parse.(Int, map(_rm_description, col))
+_rm_descriptions(col) = map(_rm_description, col)
 
 """
     _contains_description(col)::Bool
 
 Return whether the column `col` contains descriptions.
 """
-_contains_description(col)::Bool = any(contains(_description_regex()), col)
+function _contains_description(col)::Bool 
+    function is_match(value)
+        if value === missing
+            false
+        else  
+            contains(value, _description_regex()) 
+        end
+    end
+    any(is_match, col)
+end
 
 """
     rm_descriptions(df)::DataFrame
@@ -89,12 +98,12 @@ function rm_descriptions(df)::DataFrame
     df = DataFrame(df)
     # Not using in-place replacement since the type has to change.
     function map_col(i::Number)::Array
-        col = df[!,1]
-        typeof(col) == Array{String,1} ? _rm_descriptions(col) : col
+        col = df[!, 1]
+        _rm_descriptions(col)
     end
     for i in 1:ncol(df)
         col = df[!, i]
-        if _contains_description(col)
+        if contains(string(typeof(col)), "String") && _contains_description(col)
             df[!, i] = _rm_descriptions(col)
         end
     end

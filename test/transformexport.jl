@@ -20,21 +20,21 @@ using Test
     @test TransformExport.rename_id_col!(DataFrame(filled_out_by_id = 1)) == DataFrame(id = 1)
 
     df = TransformExport.read_csv(joinpath(export_dir, "responses", "first.csv"); delim=';')
+    without_descr = TransformExport.rm_descriptions(df)
+    @test TransformExport.simplify(without_descr) == 
+        DataFrame(id = "aaaa", completed_at = "22-08-2020 14:49:47", v2 = 2, v3 = 3)
     @test string(TransformExport.parsedatetime(df[1, :completed_at])) == "2020-08-22T14:49:47"
 
     @test size(df) == (3, 17)
     simple = TransformExport.simplify(df) 
     @test simple == DataFrame(id = "aaaa", completed_at = "22-08-2020 14:49:47", v2 = "2 <br/> (lorem)", v3 = "3 (heel erg)")
 
-    @test TransformExport._rm_description("1") == "1"
-    @test TransformExport._rm_description("23 (lorem)") == "23"
-    @test TransformExport._rm_description("45 <br/> (lorem)") == "45"
+    @test TransformExport._rm_description("1") == 1
+    @test TransformExport._rm_description("23 (lorem)") == 23
+    @test TransformExport._rm_description("45 <br/> (lorem)") == 45
     @test TransformExport._rm_descriptions(["6"]) == [6]
     @test TransformExport._contains_description(["7 (ipsum)"]) == true
     @test TransformExport._contains_description(["2018"]) == false
-
-    without_descr = TransformExport.rm_descriptions(df)
-    @test without_descr == DataFrame(id = "aaaa", completed_at = "22-08-2020 14:49:47", v2 = 2, v3 = 3)
 
     people = DataFrame(:person_id => ["aaaa", "aaab"], :first_name => ["0001", "0002"])
     with_names = DataFrame(id = "0001", completed_at = "22-08-2020 14:49:47", v2 = "2 <br/> (lorem)", v3 = "3 (heel erg)")
