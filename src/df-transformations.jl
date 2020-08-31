@@ -2,7 +2,8 @@ using CategoricalArrays
 using DataFrames: ColumnIndex
 
 export 
-    order_with
+    order_with,
+    enforce_ordering
 
 """
     order_with(df::DataFrame, col::ColumnIndex, ordering::Array)::DataFrame
@@ -23,6 +24,13 @@ end
 Enforces that the column `col` of `df` is ordered in the same way and contains the same elements as `ordering`.
 """
 function enforce_ordering(df::DataFrame, col::T, ordering::Array)::DataFrame where {T<:ColumnIndex}
+    if has_duplicates(df[!, col]) 
+        @warn "enforce_ordering: DataFrame contains duplicates at column $col"
+    end
+    if length(df[!, col]) < length(ordering)
+        @warn "enforce_ordering: DataFrame is missing elements at column $col"
+    end
     df = DataFrame(df)
+    df = order_with(df, col, ordering)
     df
 end

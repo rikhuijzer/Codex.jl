@@ -6,7 +6,9 @@ using Test
     @test dirparent("/a/b/c") == "/a/b"
     @test dirparent("/a/b/c/") == "/a/b"
     @test dirparent("/a/b/c", 2) == "/a"
-    
+    @test has_duplicates([1]) == false
+    @test has_duplicates([1,1]) == true
+
     @test endswith(project_root(), "Codex.jl")
 
     fns = [

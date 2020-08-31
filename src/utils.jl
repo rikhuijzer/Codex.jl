@@ -3,7 +3,7 @@ using DataFrames
 export 
     apply,
     dirparent,
-    hastrue,
+    has_duplicates,
     map_by_df,
     nofalse,
     project_root,
@@ -33,6 +33,13 @@ dirparent("/a/b/c")
 """
 dirparent(path)::String = splitdir(endswith(path, '/') ? path[1:end-1] : path)[1]
 dirparent(path, n)::String = ∘(repeat([dirparent], n)...)(path)
+
+"""
+    has_duplicates(A::AbstractArray)::Bool
+
+Returns whether `A` contains duplicates.
+"""
+has_duplicates(A::AbstractArray) = length(A) != length(unique(A))
 
 """
     project_root()::String

@@ -8,6 +8,8 @@ import Codex
     ordering = [2, 1, 3]
     expected = DataFrame(x = [2, 1], y = ["2", "1"])
     @test Codex.order_with(unordered, :x, ordering) == expected
-    expected = DataFrame(x = ordering, y = ["2", "1", missing])
+
+    # Maybe add missing functionality later.
+    # expected = DataFrame(x = ordering, y = ["2", "1", missing])
     # @test Codex.enforce_ordering(unordered, :x, ordering) == expected
 end
