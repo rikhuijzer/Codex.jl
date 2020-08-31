@@ -3,5 +3,6 @@ using Test
 
 @testset "Codex" begin
     include("utils.jl")
+    include("df-transformations.jl")
     include("transformexport.jl")
 end
