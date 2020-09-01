@@ -3,19 +3,35 @@ using DataFrames: ColumnIndex
 
 export 
     order_with,
+    Ordering,
     enforce_ordering
 
-"""
-    order_with(df::DataFrame, col::ColumnIndex, ordering::Array)::DataFrame
+struct Ordering
+    col::T where {T<:ColumnIndex}
+    newlevels::Union{Vector, Nothing}
+end
 
-Enforces that the column `col` of `df` is ordered according to `newlevels`.
 """
-function order_with(df::DataFrame, col::T, newlevels::Vector)::DataFrame where {T<:ColumnIndex}
+    order_with(df::DataFrame, orderings::Array{Ordering,1})::DataFrame
+
+Sorts `df` by `cols` in the order given by `orderings`, see the documentation of `DataFrames.sort`.
+Let `o` be an `ordering::Ordering`.
+Enforces that the columns `o.col` of `df` are ordered according to `o.newlevels` if `o.newlevels` is not `missing`.
+"""
+function order_with(df::DataFrame, orderings::Array{Ordering,1})::DataFrame
     df = DataFrame(df)
-    df[!, col] = CategoricalArray(df[!, col])
-    levels!(df[!, col], newlevels; allowmissing=true)
-    sort!(df, [col])
-    df[!, col] = categorical2simple(df[!, col])
+    for o in orderings
+        if o.newlevels != nothing
+            df[!, o.col] = CategoricalArray(df[!, o.col])
+            levels!(df[!, o.col], o.newlevels; allowmissing=true)
+        end
+    end
+    sort!(df, map(o -> o.col, orderings))
+    for o in orderings
+        if o.newlevels != nothing
+             df[!, o.col] = categorical2simple(df[!, o.col])
+        end
+    end
     df
 end
 
