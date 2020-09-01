@@ -17,7 +17,6 @@ using Test
     incomplete = DataFrame(x = [1], y = ["1"])
     @test all(add_missing(incomplete, :x, [1, 2]).y .=== ["1", missing])
 
-    incomplete = DataFrame(u = [1, 1], v = ["a", "b"])
-    # Add missing is probably not necessary in Manager since all will be there from the backend.
-    # @test all(add_missing(incomplete, :u, [1, 2], :v).v .=== ["a", missing, "b", missing])
+    incomplete = DataFrame(U = [1, 1], V = ["a", "b"], W = [1, 2])
+    @test all(add_missing(incomplete, :U, [1, 2], :V).W .=== [1, missing, 2, missing])
 end

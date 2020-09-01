@@ -35,6 +35,15 @@ Add rows to ensure that for all elements in `expected`, the same element exists 
 """
 function add_missing(df::DataFrame, actual::T, expected::AbstractArray, by::T)::DataFrame where {T<:ColumnIndex}
     df = DataFrame(df)
+    function process_by(u)::DataFrame
+        subset = filter(by => v -> v == u, df)
+        subset = select!(subset, Not(by))
+        subset = add_missing(subset, actual, expected)
+        subset[!, by] = repeat([u], nrow(subset))
+        subset
+    end
+    uniques = unique(df[!, by])
+    reduce(append!, map(process_by, uniques))
 end
 
 """
