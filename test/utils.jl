@@ -2,7 +2,11 @@ using DataFrames
 using Codex
 using Test
 
+import CategoricalArrays
+
 @testset "Utils" begin
+    A = ["1", 2, missing]
+    @test all(categorical2simple(CategoricalArrays.CategoricalArray(A)) .=== A)
     @test dirparent("/a/b/c") == "/a/b"
     @test dirparent("/a/b/c/") == "/a/b"
     @test dirparent("/a/b/c", 2) == "/a"
