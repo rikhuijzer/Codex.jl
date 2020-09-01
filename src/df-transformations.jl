@@ -29,6 +29,15 @@ function add_missing(df::DataFrame, actual::T, expected::AbstractArray)::DataFra
 end
 
 """
+    add_missing(df::DataFrame, actual::ColumnIndex, expected::Array, by::ColumnIndex)::DataFrame
+
+Add rows to ensure that for all elements in `expected`, the same element exists in `actual` for each unique element of `by`.
+"""
+function add_missing(df::DataFrame, actual::T, expected::AbstractArray, by::T)::DataFrame where {T<:ColumnIndex}
+    df = DataFrame(df)
+end
+
+"""
     order_with(df::DataFrame, orderings::Array{Ordering,1})::DataFrame
 
 Sorts `df` by `cols` in the order given by `orderings`, see the documentation of `DataFrames.sort`.

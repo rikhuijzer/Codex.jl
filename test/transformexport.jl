@@ -43,9 +43,6 @@ using Test
     id_username = TransformExport.read_csv(joinpath(data_dir, "id-username.csv"))
     @test TransformExport.names2usernames(with_names, id_username)[!, :id] == ["jackson"]
 
-    df = TransformExport.read_csv(joinpath(export_dir, "responses", "third.csv"))
-    @test Set(first(TransformExport.split_datetime(df, :completed_at))) == Set(["kim", "01-01-2020", "10:00:00", 2])
-
-    expected = [1 2 missing 3 4 missing]
-    # @test enforce_ordering(
+    third = TransformExport.read_csv(joinpath(export_dir, "responses", "third.csv"))
+    @test Set(first(TransformExport.split_datetime(third, :completed_at))) == Set(["kim", "01-01-2020", "10:00:00", 2])
 end
