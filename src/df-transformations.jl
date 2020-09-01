@@ -2,13 +2,30 @@ using CategoricalArrays
 using DataFrames: ColumnIndex
 
 export 
-    order_with,
     Ordering,
-    enforce_ordering
+    add_missing,
+    order_with
 
 struct Ordering
     col::T where {T<:ColumnIndex}
     newlevels::Union{Vector, Nothing}
+end
+
+"""
+    add_missing(df::DataFrame, actual::ColumnIndex, expected::Array)::DataFrame
+
+Add rows to ensure that for all elements in `expected`, the same element exists in `actual`.
+"""
+function add_missing(df::DataFrame, actual::T, expected::AbstractArray)::DataFrame where {T<:ColumnIndex}
+    df = DataFrame(df)
+    for e in expected
+        if !(e in df[!, actual]) 
+            allowmissing!(df)
+            row = Tuple([[e]; repeat([missing], ncol(df) - 1)])
+            push!(df, row)
+        end
+    end
+    df
 end
 
 """
@@ -32,23 +49,5 @@ function order_with(df::DataFrame, orderings::Array{Ordering,1})::DataFrame
              df[!, o.col] = categorical2simple(df[!, o.col])
         end
     end
-    df
-end
-
-"""
-    enforce_ordering(df::DataFrame, col::ColumnIndex, ordering::Array)::DataFrame
-
-Enforces that the column `col` of `df` is ordered in the same way and contains the same elements as `ordering`.
-"""
-function enforce_ordering(df::DataFrame, col::T, ordering)::DataFrame where {T<:ColumnIndex}
-    df = DataFrame(df)
-    if has_duplicates(df[!, col]) 
-        @warn "enforce_ordering: DataFrame contains duplicates at column $col"
-    end
-    if length(df[!, col]) < length(ordering)
-        @warn "enforce_ordering: DataFrame is missing elements at column $col"
-    end
-    df = order_with(df, col, ordering)
-    # look at push!(df, (1, "M")) 
     df
 end

@@ -14,7 +14,6 @@ using Test
     expected = DataFrame(x = [1, 1, 2], y = ["b", "c", "a"]) 
     @test order_with(unordered, [Ordering(:x, nothing), Ordering(:y, nothing)]) == expected
 
-    # Maybe add feature to add missing rows later.
-    # expected = DataFrame(x = ordering, y = ["2", "1", missing])
-    # @test Codex.enforce_ordering(unordered, :x, ordering) == expected
+    incomplete = DataFrame(x = [1], y = ["1"])
+    @test all(add_missing(incomplete, :x, [1, 2]).y .=== ["1", missing])
 end
