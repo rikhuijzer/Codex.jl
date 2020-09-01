@@ -3,6 +3,7 @@ module TransformExport
 using Codex
 using CSV
 using DataFrames
+using DataFrames: ColumnIndex
 using Dates
 
 export 
@@ -12,7 +13,8 @@ export
     substitute_names,
     names2usernames,
     process,
-    rm_descriptions
+    rm_descriptions,
+    split_datetime
 
 """
     read_csv(path; delim)::DataFrame
@@ -142,6 +144,19 @@ end
 
 function names2usernames(df, id_username)::DataFrame
     df.id = map_by_df(df.id, id_username, :id, :username)
+    df
+end
+
+"""
+    split_datetime(df::DataFrame, datetime_col::ColumnIndex)::DataFrame
+
+Split the datetime column `datetime_col` into two columns, namely one for date and one for time.
+"""
+function split_datetime(df::DataFrame, datetime_col::T)::DataFrame where {T<:ColumnIndex}
+    df = DataFrame(df) 
+    df.date = map(x -> first(split(x, " ")), df[!, datetime_col])
+    df.time = map(x -> split(x, " ")[2], df[!, datetime_col])
+    select!(df, Not(datetime_col))
     df
 end
 

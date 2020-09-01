@@ -49,5 +49,6 @@ function enforce_ordering(df::DataFrame, col::T, ordering)::DataFrame where {T<:
         @warn "enforce_ordering: DataFrame is missing elements at column $col"
     end
     df = order_with(df, col, ordering)
+    # look at push!(df, (1, "M")) 
     df
 end

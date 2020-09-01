@@ -3,7 +3,6 @@ using Codex
 using DataFrames
 using Test
 
-
 @testset "DataFrame Transformations" begin
     unordered = DataFrame(x = [1, "2", missing], y = ["1", "2", "4"])
     ordering = Ordering(:x, ["2", 1, 3, missing])
