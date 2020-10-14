@@ -5,8 +5,12 @@ import CSV
 using DataFrames
 using Test
 
+data_dir = joinpath(project_root(), "test", "data")
+export_dir = joinpath(data_dir, "2020-08")
+
+include("personality.jl")
+
 @testset "TransformExport" begin
-    data_dir = joinpath(project_root(), "test", "data")
     export_dir = joinpath(data_dir, "2020-08")
     dfs = TransformExport.responses(export_dir)
     @test typeof(dfs) == Dict{String,DataFrame}

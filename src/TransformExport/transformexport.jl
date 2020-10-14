@@ -6,6 +6,8 @@ using DataFrames
 using DataFrames: ColumnIndex
 using Dates
 
+include("personality.jl")
+
 export 
     read_csv,
     responses,

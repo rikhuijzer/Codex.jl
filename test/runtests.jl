@@ -4,5 +4,5 @@ using Test
 @testset "Codex" begin
     include("utils.jl")
     include("df-transformations.jl")
-    include("transformexport.jl")
+    include(joinpath("TransformExport", "transformexport.jl"))
 end
