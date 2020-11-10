@@ -52,6 +52,10 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
     joined = innerjoin(people_data, responses_data, on = :backend_id)
     select!(joined, Not(:backend_id))
+
+    if nato_name == "lima"
+        joined = personality2scores(joined)
+    end
     return joined
 end
 
@@ -89,25 +93,21 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
     dropouts_data = dropouts(Codex.dirparent(data_dir))
     
     if group == "operators"
+        responses_data
+    else # Graduates and dropouts.
+        # If this code takes too long, then try to reduce the number of columns.
         df = @from r in responses_data begin
-            @select { r... }
+            @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
+            @where d.cohort == cohort
+            @where group == "graduates" ? 
+                d.dropout == 0 :
+                #  Must be dropouts, by `group == operators` conditional above.
+                (d.dropout == 1 && (group == "dropout-medical" ?
+                    d.dropout_reason == "B" :
+                    d.dropout_reason != "B"))
+            @select { r..., group = group }
             @collect DataFrame
         end
-    else # Graduates and dropouts.
-        # Not using Query here, because it takes ages on lima.
-        df
-#        df = @from r in responses_data begin
-#            @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
-#            @where d.cohort == cohort
-#            @where group == "graduates" ? 
-#                d.dropout == 0 :
-#                #  Must be dropouts, by `group == operators` conditional above.
-#                (d.dropout == 1 && (group == "dropout-medical" ?
-#                    d.dropout_reason == "B" :
-#                    d.dropout_reason != "B"))
-#            @select { r..., group = group }
-#            @collect DataFrame
-#        end
     end
 
     if cohort == 2018
