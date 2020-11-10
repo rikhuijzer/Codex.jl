@@ -9,6 +9,9 @@ using Query
 
 include("personality.jl")
 
+dv_str(s) = DataValue{String}(s)
+dv_any(x) = DataValue{Any}(x)
+
 """
     get_hnd(path::AbstractString)::DataFrame
 
@@ -30,20 +33,66 @@ end
     responses(data_dir::String, nato_name::String)::DataFrame
 
 Responses for questionnaire `nato_name` as contained in directory `data_dir`.
-Returns a DataFrame { id, r...} where `id` is a long identifier and not the one from the backend.
+Returns a DataFrame with rows `{ id, r...}` where `id` is a long identifier and not the one from the backend.
 """
 function responses(data_dir::String, nato_name::String)::DataFrame
     responses_dir = joinpath(data_dir, "responses")
     responses_file = joinpath(responses_dir, "$nato_name.csv")
-    responses = Codex.TransformExport.read_csv(responses_file, delim=';')
+    responses_data = Codex.TransformExport.read_csv(responses_file, delim=';')
     people_file = joinpath(data_dir, "people.csv")
     people = Codex.TransformExport.read_csv(people_file, delim=';')
     @from p in people begin
         # Every response should have a non-empty `filled_out_by_id`.
-        @join r in responses on DataValue{String}(p.person_id) equals r.filled_out_by_id
+        @join r in responses_data on DataValue{String}(p.person_id) equals r.filled_out_by_id
         @let id = p.first_name
         @select { id, r... }
         @collect DataFrame
+    end
+end
+
+"""
+    dropouts(raw_dir::String)::DataFrame
+
+Returns dropout data where all IDs are in the long identifier format.
+"""
+function dropouts(raw_dir::String)
+    dropouts_file = joinpath(raw_dir, "dropouts.csv")
+    dropouts_data = Codex.TransformExport.read_csv(dropouts_file; delim=';')
+
+    id_username_file = joinpath(raw_dir, "id-username.csv")
+    id_username_data = Codex.TransformExport.read_csv(id_username_file; delim=',')
+
+    @from d in dropouts_data begin
+        @left_outer_join i in id_username_data on dv_str(d.id) equals i.username
+        @let fixed_id = get(i.id, String) == String ? d.id : string(get(i.id, String))[7:end]
+        @select { id = fixed_id, d.cohort, d.dropout_date, 
+            d.dropout_reason, d.dropout_code, d.note }
+        @collect DataFrame
+    end
+end
+
+"""
+    responses(data_dir::String, nato_name::String, group::String, measurement::Int)::DataFrame
+
+Responses for group `group` and measurement `measurement`, where `group` is one of `graduates`, `operators`, `dropout-medical` or `dropout-non-medical`.
+"""
+function responses(data_dir::String, nato_name::String, group::String, measurement::Int)
+    responses_data = responses(data_dir, nato_name) 
+    cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
+    dropouts_data = dropouts(Codex.dirparent(data_dir))
+    
+    if group == "operators"
+        @from r in responses_data begin
+            @select { r... }
+            @collect DataFrame
+        end
+    else # Graduates and dropouts.
+        @from r in responses_data begin
+            @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
+            @where d.cohort == cohort
+            @select { r... }
+            @collect DataFrame
+        end
     end
 end
 
