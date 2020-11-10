@@ -3,6 +3,7 @@ module Questionnaires
 using Codex
 using CSV
 using DataFrames
+using DataValues
 using Dates
 using Query
 
@@ -26,6 +27,27 @@ function get_hnd(path::AbstractString)::DataFrame
 end
 
 """
+    responses(data_dir::String, nato_name::String)::DataFrame
+
+Responses for questionnaire `nato_name` as contained in directory `data_dir`.
+Returns a DataFrame { id, r...} where `id` is a long identifier and not the one from the backend.
+"""
+function responses(data_dir::String, nato_name::String)::DataFrame
+    responses_dir = joinpath(data_dir, "responses")
+    responses_file = joinpath(responses_dir, "$nato_name.csv")
+    responses = Codex.TransformExport.read_csv(responses_file, delim=';')
+    people_file = joinpath(data_dir, "people.csv")
+    people = Codex.TransformExport.read_csv(people_file, delim=';')
+    @from p in people begin
+        # Every response should have a non-empty `filled_out_by_id`.
+        @join r in responses on DataValue{String}(p.person_id) equals r.filled_out_by_id
+        @let id = p.first_name
+        @select { id, r... }
+        @collect DataFrame
+    end
+end
+
+"""
     first_personality_measurement(raw_dir::String, cohort::Int; group="dropouts", dropout_medical=true)::DataFrame
 """
 function first_personality_measurement(raw_dir::String, cohort::Int; group="dropouts", dropout_medical=true)::DataFrame
@@ -43,7 +65,7 @@ function first_personality_measurement(raw_dir::String, cohort::Int; group="drop
         "$raw_dir/2019-09/responses_kct_lima_2019-10-01.csv"
     lima_before = CSV.File(file, delim=';') |> DataFrame
     return lima_before
-    lima_before_scores = Codex.TransformExport.personality2scores(lima_before)
+    lima_before_scores = Codex.Questionnaires.personality2scores(lima_before)
     file = "$raw_dir/dropouts.csv"
     dropouts = CSV.File(file, delim=';') |> DataFrame
 

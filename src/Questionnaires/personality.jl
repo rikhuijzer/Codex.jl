@@ -1,5 +1,6 @@
 using CSV
 using DataFrames
+using Query
 
 export personality2scores
     
