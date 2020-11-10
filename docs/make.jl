@@ -5,7 +5,8 @@ makedocs(
     sitename = "Codex.jl",
     pages = [
         "Index" => "index.md",
-        "TransformExport" => "transformexport.md"
+        "TransformExport" => "transformexport.md",
+        "Questionnaires" => "questionnaires.md"
     ],
     format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true")
 )
