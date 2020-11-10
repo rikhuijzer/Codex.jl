@@ -8,6 +8,7 @@ using Dates
 using Query
 
 include("personality.jl")
+include("plot.jl")
 
 dv_str(s) = DataValue{String}(s)
 dv_any(x) = DataValue{Any}(x)
@@ -93,7 +94,8 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
     dropouts_data = dropouts(Codex.dirparent(data_dir))
     
     if group == "operators"
-        responses_data
+        df = responses_data
+        df[:group] = "operators"
     else # Graduates and dropouts.
         # If this code takes too long (>5 seconds), then try to reduce the number of columns.
         df = @from r in responses_data begin
@@ -105,7 +107,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
                 (d.dropout == 1 && (group == "dropout-medical" ?
                     d.dropout_reason == "B" :
                     d.dropout_reason != "B"))
-            @select { r..., group = group }
+            @select { group = group, r... }
             @collect DataFrame
         end
     end
@@ -126,52 +128,18 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
     end
 end
 
-"""
-    first_personality_measurement(raw_dir::String, cohort::Int; group="dropouts", dropout_medical=true)::DataFrame
-"""
-function first_personality_measurement(raw_dir::String, cohort::Int; group="dropouts", dropout_medical=true)::DataFrame
-    # TODO: Move this to a function which returns a dataset after receiving a string.
-	file = cohort == 2018 ?
-		"$raw_dir/2018-02/responses_kct_bravo_2019-02-21.csv" :
-		"$raw_dir/2019-09/responses_kct_bravo_2019-10-10.csv"
-	bravo = CSV.File(file, delim=';') |> DataFrame
-	file = cohort == 2018 ?
-		"$raw_dir/2018-02/people_2019-02-21.csv" :
-		"$raw_dir/2019-09/people_2019-10-01.csv"
-	people = CSV.File(file, delim=';') |> DataFrame
-	file = cohort == 2018 ?
-        "$raw_dir/2018-02/responses_kct_lima_2019-02-21.csv" :
-        "$raw_dir/2019-09/responses_kct_lima_2019-10-01.csv"
-    lima_before = CSV.File(file, delim=';') |> DataFrame
-    return lima_before
-    lima_before_scores = Codex.Questionnaires.personality2scores(lima_before)
-    file = "$raw_dir/dropouts.csv"
-    dropouts = CSV.File(file, delim=';') |> DataFrame
-
-	@from b in bravo begin
-		@join p in people on b.filled_out_by_id equals DataValue(p.person_id)
-		# Wrapping tryparse in DataValue(...) will throw an error.
-		@let parse_attempt = typeof(b.v1) == DataValue{Int64} ?
-			b.v1 :
-			tryparse(Int, get(b.v1, String))
-		@let age = typeof(b.v1) == DataValue{Int64} ? 
-			b.v1 : 
-			isnothing(parse_attempt) ? 
-				9999 : 
-				DataValue{Int}(parse_attempt)
-		@select {id=p.first_name[7:end], age=age, education=b.v5} into a
-		@where !isnothing(a.age) && a.age < 100 && a.id != ""
-		@join l in lima_before_scores on DataValue{String}(a.id) equals DataValue{String}(l.id)
-		@join d in dropouts on DataValue{String}(l.id) equals DataValue{String}(d.id)
-		@where (group != "dropouts") ? 
-			d.dropout == 0 :
-			(d.dropout == 1 && (dropout_medical ? 
-				d.dropout_reason == "B" :
-				d.dropout_reason != "B"))
-		@let detailed_group = (group != "dropouts") ? group : group * (dropout_medical ? "-medical" : "-non-medical")
-		@select {a.id, a.age, a.education, group=detailed_group, l.N, l.E, l.O, l.A, l.C}
-		@collect DataFrame
-	end
+function first_personality_measurement(raw_dir) 
+    parameters = [
+        (raw_dir, "2018-first", "lima", "graduates", 1),
+        (raw_dir, "2018-first", "lima", "dropouts-medical", 1),
+        (raw_dir, "2018-first", "lima", "dropouts-non-medical", 1),
+        (raw_dir, "2019-first", "lima", "graduates", 1),
+        (raw_dir, "2019-first", "lima", "dropouts-medical", 1),
+        (raw_dir, "2019-first", "lima", "dropouts-non-medical", 1),
+        (raw_dir, "2020-operators", "lima", "operators", 1)
+    ]
+    helper(a, b, c, d, e::Int) = responses(joinpath(a, b), c, d; measurement=e)
+    vcat([helper(t...) for t in parameters]...)
 end
 
 end # module
