@@ -1,4 +1,5 @@
 using DataFrames
+using Dates
 
 export 
     apply,
@@ -8,7 +9,8 @@ export
     map_by_df,
     nofalse,
     project_root,
-    rmextension
+    rmextension,
+    today
 
 """
     apply(fns, obj)
@@ -75,3 +77,5 @@ function map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol)::Array
     end
     map(map_element, a)
 end
+
+today() = Dates.format(Dates.now(), DateFormat("yyyy-mm-dd"))
