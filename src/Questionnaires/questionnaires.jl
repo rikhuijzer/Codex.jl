@@ -72,27 +72,43 @@ function dropouts(raw_dir::String)
 end
 
 """
-    responses(data_dir::String, nato_name::String, group::String, measurement::Int)::DataFrame
+    responses(data_dir::String, nato_name::String, group::String; measurement=999)::DataFrame
 
 Responses for group `group` and measurement `measurement`, where `group` is one of `graduates`, `operators`, `dropout-medical` or `dropout-non-medical`.
+`measurement` is only used to split the 2018 data, for the later datasets it is ignored.
 """
-function responses(data_dir::String, nato_name::String, group::String, measurement::Int)
+function responses(data_dir::String, nato_name::String, group::String; measurement=999)
     responses_data = responses(data_dir, nato_name) 
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
     dropouts_data = dropouts(Codex.dirparent(data_dir))
     
     if group == "operators"
-        @from r in responses_data begin
+        df = @from r in responses_data begin
             @select { r... }
             @collect DataFrame
         end
     else # Graduates and dropouts.
-        @from r in responses_data begin
+        df = @from r in responses_data begin
             @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
             @where d.cohort == cohort
             @select { r... }
             @collect DataFrame
         end
+    end
+
+    if cohort == 2018
+        if !(measurement in [1, 2])
+            throw(AssertionError("Measurement has to be specified for the 2018 data"))
+        end
+        threshold = Date("2019-01-01")
+        # Not using a query since it cannot handle `{ i... }` for some reason.
+        function filter_date(x)::Bool
+            date = Date(first(split(x, ' ')), DateFormat("dd-mm-yyyy"))
+            measurement == 1 ? date < threshold : threshold < date
+        end
+        return filter([:completed_at] => filter_date, df)
+    else # After 2018, the datasets are already split on before and after selection.
+        df
     end
 end
 
