@@ -39,15 +39,20 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     responses_dir = joinpath(data_dir, "responses")
     responses_file = joinpath(responses_dir, "$nato_name.csv")
     responses_data = Codex.TransformExport.read_csv(responses_file, delim=';')
+    # To speed up further processing.
+    Codex.TransformExport.rm_timing!(responses_data)
+    Codex.TransformExport.rm_boring_timestamps!(responses_data)
+    Codex.TransformExport.rm_boring_foreign_keys!(responses_data)
+
     people_file = joinpath(data_dir, "people.csv")
-    people = Codex.TransformExport.read_csv(people_file, delim=';')
-    @from p in people begin
-        # Every response should have a non-empty `filled_out_by_id`.
-        @join r in responses_data on DataValue{String}(p.person_id) equals r.filled_out_by_id
-        @let id = p.first_name
-        @select { id, r... }
-        @collect DataFrame
-    end
+    people_data = Codex.TransformExport.read_csv(people_file, delim=';')
+
+    # Avoiding Query because precompilation takes ages (>1 minutes) for hundreds of rows.
+    select!(people_data, :person_id => :backend_id, :first_name => :id)
+    rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
+    joined = innerjoin(people_data, responses_data, on = :backend_id)
+    select!(joined, Not(:backend_id))
+    return joined
 end
 
 """
@@ -79,10 +84,6 @@ Responses for group `group` and measurement `measurement`, where `group` is one 
 """
 function responses(data_dir::String, nato_name::String, group::String; measurement=999)
     responses_data = responses(data_dir, nato_name) 
-    # To speed up further processing.
-    Codex.TransformExport.rm_timing!(responses_data)
-    Codex.TransformExport.rm_boring_timestamps!(responses_data)
-    Codex.TransformExport.rm_boring_foreign_keys!(responses_data)
 
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
     dropouts_data = dropouts(Codex.dirparent(data_dir))
@@ -93,18 +94,20 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
             @collect DataFrame
         end
     else # Graduates and dropouts.
-        df = @from r in responses_data begin
-            @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
-            @where d.cohort == cohort
-            @where group == "graduates" ? 
-                d.dropout == 0 :
-                #  Must be dropouts, by `group == operators` conditional above.
-                (d.dropout == 1 && (group == "dropout-medical" ?
-                    d.dropout_reason == "B" :
-                    d.dropout_reason != "B"))
-            @select { r..., group = group }
-            @collect DataFrame
-        end
+        # Not using Query here, because it takes ages on lima.
+        df
+#        df = @from r in responses_data begin
+#            @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
+#            @where d.cohort == cohort
+#            @where group == "graduates" ? 
+#                d.dropout == 0 :
+#                #  Must be dropouts, by `group == operators` conditional above.
+#                (d.dropout == 1 && (group == "dropout-medical" ?
+#                    d.dropout_reason == "B" :
+#                    d.dropout_reason != "B"))
+#            @select { r..., group = group }
+#            @collect DataFrame
+#        end
     end
 
     if cohort == 2018
