@@ -65,7 +65,7 @@ function dropouts(raw_dir::String)
     @from d in dropouts_data begin
         @left_outer_join i in id_username_data on dv_str(d.id) equals i.username
         @let fixed_id = get(i.id, String) == String ? d.id : string(get(i.id, String))[7:end]
-        @select { id = fixed_id, d.cohort, d.dropout_date, 
+        @select { id = fixed_id, d.cohort, d.dropout, d.dropout_date, 
             d.dropout_reason, d.dropout_code, d.note }
         @collect DataFrame
     end
@@ -79,6 +79,11 @@ Responses for group `group` and measurement `measurement`, where `group` is one 
 """
 function responses(data_dir::String, nato_name::String, group::String; measurement=999)
     responses_data = responses(data_dir, nato_name) 
+    # To speed up further processing.
+    Codex.TransformExport.rm_timing!(responses_data)
+    Codex.TransformExport.rm_boring_timestamps!(responses_data)
+    Codex.TransformExport.rm_boring_foreign_keys!(responses_data)
+
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
     dropouts_data = dropouts(Codex.dirparent(data_dir))
     
@@ -91,7 +96,13 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
         df = @from r in responses_data begin
             @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
             @where d.cohort == cohort
-            @select { r... }
+            @where group == "graduates" ? 
+                d.dropout == 0 :
+                #  Must be dropouts, by `group == operators` conditional above.
+                (d.dropout == 1 && (group == "dropout-medical" ?
+                    d.dropout_reason == "B" :
+                    d.dropout_reason != "B"))
+            @select { r..., group = group }
             @collect DataFrame
         end
     end
