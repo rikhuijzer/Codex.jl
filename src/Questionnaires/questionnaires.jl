@@ -8,6 +8,7 @@ using Dates
 using Query
 
 include("personality.jl")
+include("intelligence.jl")
 include("plot.jl")
 
 dv_str(s) = DataValue{String}(s)
@@ -54,7 +55,11 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     joined = innerjoin(people_data, responses_data, on = :backend_id)
     select!(joined, Not(:backend_id))
 
-    if nato_name == "lima"
+    if nato_name == "foxtrot"
+        joined = Intelligence.foxtrot2scores(joined)
+    elseif nato_name == "golf"
+        joined = Intelligence.golf2scores(joined)
+    elseif nato_name == "lima"
         joined = personality2scores(joined)
     end
     return joined

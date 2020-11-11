@@ -9,4 +9,8 @@ using Codex.Questionnaires
 
     df = Codex.Questionnaires.responses(data_dir, "second")
     @test size(df) == (3, 8)
+
+    df = Codex.Questionnaires.responses(data_dir, "foxtrot")
+    @test df[:, [:correct, :incorrect, :dontknow]] == 
+        DataFrame(correct = [8], incorrect = [3], dontknow = [0])
 end
