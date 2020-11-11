@@ -35,7 +35,7 @@ function ans2num(ans, question::Int, year::Int)::Number
 end
 
 function delta2scores(df::DataFrame)
-    @from i in df begin
+    result = @from i in df begin
         @let score = is_2018(df) ?
             sum([
                 ans2num(i.v1, 1, 2018),
@@ -51,10 +51,19 @@ function delta2scores(df::DataFrame)
                 ans2num(i.v5, 5, 2019),
                 ans2num(i.v6, 6, 2019),
             ])
-        @let achievable = is_2018(df) ? "" : i.v7
+        @let achievable = is_2018(df) ? "" : 
+            (typeof(i.v7) != String ? get(i.v7, String) : i.v7)
         @select { i.id, i.completed_at, score, achievable }
         @collect DataFrame
     end
+
+    # Enforce types to allow `vcat`.
+    DataFrame(
+        id = string.(result[:, :id]),
+        completed_at = string.(result[:, :completed_at]),
+        score = float.(result[:, :score]),
+        achievable = string.(result[:, :achievable])
+    )
 end
 
 end # module

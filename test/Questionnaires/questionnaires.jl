@@ -11,7 +11,7 @@ using Codex.Questionnaires
     @test size(df) == (3, 8)
 
     df = Codex.Questionnaires.responses(data_dir, "delta")
-    @test df[:, [:id, :score]] == DataFrame(id = [0002], score = [26])
+    @test df[1, :score] == 26.0
 
     df = Codex.Questionnaires.responses(data_dir, "foxtrot")
     @test df[:, [:correct, :incorrect, :dontknow]] == 
