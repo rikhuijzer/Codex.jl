@@ -79,3 +79,10 @@ function map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol)::Array
 end
 
 today() = Dates.format(Dates.now(), DateFormat("yyyy-mm-dd"))
+
+"""
+    rescale(a, a_l, a_u, b_l, b_u)::Number
+
+Apply feature scaling to `a` from the range `[a_l, a_u]` to the range `[b_l, b_u]`.
+"""
+rescale(a, a_l, a_u, b_l, b_u) = b_l + ( ((a - a_l)*(b_u - b_l)) / (a_u - a_l) )

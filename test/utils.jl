@@ -24,4 +24,6 @@ import CategoricalArrays
 
     df = DataFrame(from = [1], to = ["one"])
     @test map_by_df([1, 2], df, :from, :to) == ["one", 2]
+
+    @test Codex.rescale(5, 1, 5, 0, 6) == 6
 end

@@ -7,6 +7,7 @@ using DataValues
 using Dates
 using Query
 
+include("commitment.jl")
 include("personality.jl")
 include("intelligence.jl")
 include("plot.jl")
@@ -55,7 +56,9 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     joined = innerjoin(people_data, responses_data, on = :backend_id)
     select!(joined, Not(:backend_id))
 
-    if nato_name == "foxtrot"
+    if nato_name == "delta"
+        joined = Commitment.delta2scores(joined)
+    elseif nato_name == "foxtrot"
         joined = Intelligence.foxtrot2scores(joined)
     elseif nato_name == "golf"
         joined = Intelligence.golf2scores(joined)
