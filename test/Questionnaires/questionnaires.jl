@@ -17,5 +17,6 @@ using Codex.Questionnaires
     @test df[:, [:correct, :incorrect, :dontknow]] == 
         DataFrame(correct = [8], incorrect = [3], dontknow = [0])
 
-
+    df = Codex.Questionnaires.responses(data_dir, "kilo")
+    @test df[:, [:optimism, :pessimism]] == DataFrame(optimism = [10], pessimism = [7])
 end

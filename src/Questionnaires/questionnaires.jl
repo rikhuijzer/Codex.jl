@@ -10,6 +10,7 @@ using Query
 include("commitment.jl")
 include("personality.jl")
 include("intelligence.jl")
+include("optimism.jl")
 include("plot.jl")
 
 dv_str(s) = DataValue{String}(s)
@@ -62,6 +63,8 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         joined = Intelligence.foxtrot2scores(joined)
     elseif nato_name == "golf"
         joined = Intelligence.golf2scores(joined)
+    elseif nato_name == "kilo"
+        joined = Optimism.kilo2scores(joined)
     elseif nato_name == "lima"
         joined = personality2scores(joined)
     end
