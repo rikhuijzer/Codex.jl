@@ -89,7 +89,7 @@ end
 """
     responses(data_dir::String, nato_name::String, group::String; measurement=999)::DataFrame
 
-Responses for group `group` and measurement `measurement`, where `group` is one of `graduates`, `operators`, `dropout-medical` or `dropout-non-medical`.
+Responses for group `group` and measurement `measurement`, where `group` is one of `graduates`, `operators`, `dropouts-medical` or `dropouts-non-medical`.
 `measurement` is only used to split the 2018 data, for the later datasets it is ignored.
 """
 function responses(data_dir::String, nato_name::String, group::String; measurement=999)
@@ -109,7 +109,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
             @where group == "graduates" ? 
                 d.dropout == 0 :
                 #  Must be dropouts, by `group == operators` conditional above.
-                (d.dropout == 1 && (group == "dropout-medical" ?
+                (d.dropout == 1 && (group == "dropouts-medical" ?
                     d.dropout_reason == "B" :
                     d.dropout_reason != "B"))
             @select { group = group, r... }
