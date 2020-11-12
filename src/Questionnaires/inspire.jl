@@ -71,7 +71,6 @@ function mike2scores(df::DataFrame)
         select!(new_df, :id, :completed_at, Not([:id, :completed_at]))
         new_df = filter(:id => x -> !contains(x, "unknown"), new_df)
     end
-    new_df = disallowmissing(new_df, error=false)
 
     new_df[:, :coping_flexibility] = get_scores(new_df, coping_flexibility)
     new_df[:, :emotional_stability] = get_scores(new_df, emotional_stability)
@@ -84,6 +83,9 @@ function mike2scores(df::DataFrame)
         :coping_flexibility, :emotional_stability, :optimism, 
         :social_competence, :self_efficacy, :self_reflection
     )
+    # This could have been done above, but I mistakenly used `disallowmissing` 
+    # instead and went from there.
+    dropmissing!(scored)
     scored
 end
 
