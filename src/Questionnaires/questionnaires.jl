@@ -190,4 +190,20 @@ function join_questionnaires(raw_dir::String, questionnaires::Array{String,1}, g
     reduce(ysf_join, questionnaires)
 end
 
+"""
+    join_dropout_questionnaires(raw_dir::String)::DataFrame
+
+Combine information from multiple questionnaires to allow model fitting.
+"""
+function join_dropout_questionnaires(raw_dir::String)::DataFrame
+    df = Codex.Questionnaires.join_questionnaires(
+        raw_dir,
+        # Ignoring delta since only two operators participated in delta.
+        ["golf", "foxtrot", "kilo", "lima", "mike"],
+        ["graduates", "operators", "dropouts-non-medical"]
+    )
+    df[:, :binary_group] = [x == "graduates" || x == "operators" ? 1 : 0 for x in df[:, :group]]
+    df
+end
+
 end # module

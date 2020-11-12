@@ -88,7 +88,7 @@ Apply feature scaling to `a` from the range `[a_l, a_u]` to the range `[b_l, b_u
 rescale(a, a_l, a_u, b_l, b_u) = b_l + ( ((a - a_l)*(b_u - b_l)) / (a_u - a_l) )
 
 """
-    nrow_per_group(df::DataFrame, group::Symbol)::DataFrame
+    nrow_per_group(df::DataFrame, group::Symbol; col1="group", col2="nrow")::DataFrame
 
 Return the group name and the number of rows per group in `df`.
 """
@@ -97,3 +97,11 @@ function nrow_per_group(df, group::Symbol; col1="group", col2="nrow")::DataFrame
 	out = DataFrame([(col1 = first(k), col2 = nrow(g)) for (k, g) in zip(keys(grouped), grouped)])
     select(out, :col1 => col1, :col2 => col2)
 end
+
+"""
+    accuracy(trues, preds)::Number
+
+The number of correct predictions in `pred` (by comparing `true` to `prediction`) divided by the total number of predictions.
+"""
+accuracy(trues, preds)::Number = count(trues .== preds) / length(preds)
+
