@@ -11,6 +11,7 @@ include("commitment.jl")
 include("personality.jl")
 include("intelligence.jl")
 include("optimism.jl")
+include("inspire.jl")
 include("plot.jl")
 
 dv_str(s) = DataValue{String}(s)
@@ -51,11 +52,15 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     people_file = joinpath(data_dir, "people.csv")
     people_data = Codex.TransformExport.read_csv(people_file, delim=';')
 
-    # Avoiding Query because precompilation takes ages (>1 minutes) for hundreds of rows.
-    select!(people_data, :person_id => :backend_id, :first_name => :id)
-    rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
-    joined = innerjoin(people_data, responses_data, on = :backend_id)
-    select!(joined, Not(:backend_id))
+    if !(nato_name == "mike" && contains(data_dir, "2018"))
+        # Avoiding Query because precompilation takes ages (>1 minutes) for hundreds of columns.
+        select!(people_data, :person_id => :backend_id, :first_name => :id)
+        rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
+        joined = innerjoin(people_data, responses_data, on = :backend_id)
+        select!(joined, Not(:backend_id))
+    else 
+        joined = responses_data
+    end
 
     if nato_name == "delta"
         joined = Commitment.delta2scores(joined)
@@ -67,6 +72,8 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         joined = Optimism.kilo2scores(joined)
     elseif nato_name == "lima"
         joined = personality2scores(joined)
+    elseif nato_name == "mike"
+        joined = Inspire.mike2scores(joined)
     end
     return joined
 end
@@ -133,7 +140,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
             date = Date(first(split(x, ' ')), DateFormat("dd-mm-yyyy"))
             measurement == 1 ? date < threshold : threshold < date
         end
-        return filter([:completed_at] => filter_date, df)
+        return nato_name != "mike" ? filter([:completed_at] => filter_date, df) : df
     else # After 2018, the datasets are already split on before and after selection.
         df
     end

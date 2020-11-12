@@ -19,4 +19,7 @@ using Codex.Questionnaires
 
     df = Codex.Questionnaires.responses(data_dir, "kilo")
     @test df[:, [:optimism, :pessimism]] == DataFrame(optimism = [10], pessimism = [7])
+
+    df = Codex.Questionnaires.responses(data_dir, "mike")
+    @test df[:, [:optimism]] == DataFrame(optimism = [19])
 end
