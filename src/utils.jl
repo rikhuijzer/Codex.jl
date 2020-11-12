@@ -92,7 +92,8 @@ rescale(a, a_l, a_u, b_l, b_u) = b_l + ( ((a - a_l)*(b_u - b_l)) / (a_u - a_l) )
 
 Return the group name and the number of rows per group in `df`.
 """
-function nrow_per_group(df, group::Symbol)::DataFrame 
+function nrow_per_group(df, group::Symbol; col1="group", col2="nrow")::DataFrame 
 	grouped = groupby(df, group)
-	DataFrame([(group = first(k), nrow = nrow(g)) for (k, g) in zip(keys(grouped), grouped)])
+	out = DataFrame([(col1 = first(k), col2 = nrow(g)) for (k, g) in zip(keys(grouped), grouped)])
+    select(out, :col1 => col1, :col2 => col2)
 end

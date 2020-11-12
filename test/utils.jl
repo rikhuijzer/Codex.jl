@@ -28,5 +28,5 @@ import CategoricalArrays
     @test Codex.rescale(5, 1, 5, 0, 6) == 6
 
     df = DataFrame(group = [4, 9, 9])
-    @test Codex.nrow_per_group(df, :group) == DataFrame(group = [4, 9], nrow = [1, 2])
+    @test Codex.nrow_per_group(df, :group; col1="group", col2="n") == DataFrame(group = [4, 9], n = [1, 2])
 end
