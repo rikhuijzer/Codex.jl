@@ -160,4 +160,34 @@ function first_measurement(raw_dir::String, nato_name::String)
     vcat([helper(t...) for t in parameters]...)
 end
 
+"""
+    join_questionnaires(raw_dir::String, questionnaires::Array{String,1}, groups::Array{String,1})::DataFrame
+
+Joines multiple `questionnaires` for the members of `groups`, where `groups` ensures that the joins do not remove rows which shouldn't be removed.
+For instance, given questionnaires `"A"` and `"B"` containing respectively columns `:a1`, `:a2` and `:b1`, this method will return `{ group, id, A_a1, A_a2, B_b1 }`.
+"""
+function join_questionnaires(raw_dir::String, questionnaires::Array{String,1}, groups::Array{String,1})::DataFrame
+    function prepare_responses(q::String)::DataFrame
+        df = first_measurement(raw_dir, q)
+        filter!(:group => x -> x in groups, df)
+        select!(df, Not(:completed_at))
+    end
+
+    function ysf_join(A::DataFrame, b::String)
+        B = prepare_responses(b)
+        # Group information is already provided by `A`.
+        select!(B, Not(:group))
+        rename!(s -> s == "id" ? s : "$(b[1])_$s", B)
+        join(A, B, on = :id)
+    end
+
+    function ysf_join(a::String, b::String)
+        A = prepare_responses(a)
+        rename!(s -> s == "id" || s == "group" ? s : "$(a[1])_$s", A)
+        ysf_join(A, b)
+    end
+
+    reduce(ysf_join, questionnaires)
+end
+
 end # module
