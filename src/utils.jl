@@ -86,3 +86,13 @@ today() = Dates.format(Dates.now(), DateFormat("yyyy-mm-dd"))
 Apply feature scaling to `a` from the range `[a_l, a_u]` to the range `[b_l, b_u]`.
 """
 rescale(a, a_l, a_u, b_l, b_u) = b_l + ( ((a - a_l)*(b_u - b_l)) / (a_u - a_l) )
+
+"""
+    nrow_per_group(df::DataFrame, group::Symbol)::DataFrame
+
+Return the group name and the number of rows per group in `df`.
+"""
+function nrow_per_group(df, group::Symbol)::DataFrame 
+	grouped = groupby(df, group)
+	DataFrame([(group = first(k), nrow = nrow(g)) for (k, g) in zip(keys(grouped), grouped)])
+end
