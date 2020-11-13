@@ -1,5 +1,6 @@
 module Inspire
 
+using Codex.Questionnaires: Items, get_scores
 using DataFrames
 
 export 
@@ -11,11 +12,6 @@ export
 # https://repository.tudelft.nl/view/tno/uuid:98d97d5c-ff8e-4f26-9fba-f993bc585d39.
 # For coping, the last 4 items seem to be reversed and added later by someone.
 # Those are ignored.
-
-struct Items
-    normal::Array{Int,1}
-    reversed::Array{Int,1}
-end
 
 coping_flexibility = Items(1:36, [])
 
@@ -43,24 +39,6 @@ self_reflection = Items(
 
 reverse(x::Int) = 6 - x
 reverse(x::Missing) = missing
-
-function get_scores(df::DataFrame, items::Items)
-    if length(items.normal) != 0
-        v_normal = [Symbol("v$i") for i in items.normal]
-        normal_scores = [sum(row[v_normal]) for row in eachrow(df[:, v_normal])]
-    else
-        normal_scores = repeat([0], nrow(df))
-    end
-
-    if length(items.reversed) != 0
-        v_reversed = [Symbol("v$i") for i in items.reversed]
-        reversed_scores = [sum(map(reverse, row)) for row in eachrow(df[:, v_reversed])]
-    else
-        reversed_scores = repeat([0], nrow(df))
-    end
-
-    normal_scores .+ reversed_scores
-end
 
 function mike2scores(df::DataFrame)
     new_df = DataFrame(df)

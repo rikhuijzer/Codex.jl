@@ -7,9 +7,33 @@ using DataValues
 using Dates
 using Query
 
+struct Items
+    normal::Array{Int,1}
+    reversed::Array{Int,1}
+end
+
+function get_scores(df::DataFrame, items::Items)::Array
+    if length(items.normal) != 0
+        v_normal = [Symbol("v$i") for i in items.normal]
+        normal_scores = [sum(row[v_normal]) for row in eachrow(df[:, v_normal])]
+    else
+        normal_scores = repeat([0], nrow(df))
+    end
+
+    if length(items.reversed) != 0
+        v_reversed = [Symbol("v$i") for i in items.reversed]
+        reversed_scores = [sum(map(reverse, row)) for row in eachrow(df[:, v_reversed])]
+    else
+        reversed_scores = repeat([0], nrow(df))
+    end
+
+    normal_scores .+ reversed_scores
+end
+
 include("commitment.jl")
 include("personality.jl")
 include("intelligence.jl")
+include("toughness.jl")
 include("optimism.jl")
 include("inspire.jl")
 include("plot.jl")
@@ -68,6 +92,8 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         joined = Intelligence.foxtrot2scores(joined)
     elseif nato_name == "golf"
         joined = Intelligence.golf2scores(joined)
+    elseif nato_name == "india"
+        joined = Toughness.india2scores(joined)
     elseif nato_name == "kilo"
         joined = Optimism.kilo2scores(joined)
     elseif nato_name == "lima"
