@@ -37,9 +37,6 @@ self_reflection = Items(
     [84, 85, 86, 87, 91, 92, 89]
 )
 
-reverse(x::Int) = 6 - x
-reverse(x::Missing) = missing
-
 function mike2scores(df::DataFrame)
     new_df = DataFrame(df)
     # Not using Query since precompilation would be slow on all these cols.

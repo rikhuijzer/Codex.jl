@@ -12,6 +12,9 @@ struct Items
     reversed::Array{Int,1}
 end
 
+reverse(x::Int) = 6 - x
+reverse(x::Missing) = missing
+
 function get_scores(df::DataFrame, items::Items)::Array
     if length(items.normal) != 0
         v_normal = [Symbol("v$i") for i in items.normal]
