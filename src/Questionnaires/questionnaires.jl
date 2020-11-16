@@ -210,7 +210,7 @@ function join_questionnaires(raw_dir::String, questionnaires::Array{String,1}, g
         # Group information is already provided by `A`.
         select!(B, Not(:group))
         rename!(s -> s == "id" ? s : "$(b[1])_$s", B)
-        join(A, B, on = :id)
+        innerjoin(A, B, on = :id)
     end
 
     function ysf_join(a::String, b::String)
