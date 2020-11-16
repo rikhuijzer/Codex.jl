@@ -92,6 +92,7 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         joined = responses_data
     end
 
+    # When updating this part, also update `join_dropout_questionnaires` below.
     if nato_name == "delta"
         joined = Commitment.delta2scores(joined)
     elseif nato_name == "foxtrot"
@@ -231,7 +232,7 @@ function join_dropout_questionnaires(raw_dir::String)::DataFrame
     df = Codex.Questionnaires.join_questionnaires(
         raw_dir,
         # Ignoring delta since only two operators participated in delta.
-        ["golf", "foxtrot", "kilo", "lima", "mike"],
+        ["foxtrot", "golf", "india", "kilo", "lima", "mike"],
         ["graduates", "operators", "dropouts-non-medical"]
     )
     df[:, :binary_group] = [x == "graduates" || x == "operators" ? 1 : 0 for x in df[:, :group]]
