@@ -145,7 +145,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
     
     if group == "operators"
         df = responses_data
-        df[:group] = "operators"
+        df[:, :group] = repeat(["operators"], nrow(df))
     else # Graduates and dropouts.
         # If this code takes too long (>5 seconds), then try to reduce the number of columns.
         df = @from r in responses_data begin
