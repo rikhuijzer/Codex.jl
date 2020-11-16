@@ -79,11 +79,14 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     people_file = joinpath(data_dir, "people.csv")
     people_data = Codex.TransformExport.read_csv(people_file, delim=';')
 
-    if !(nato_name == "mike" && contains(data_dir, "2018"))
+    if nato_name != "mike" || !contains(data_dir, "2018")
         # Avoiding Query because precompilation takes ages (>1 minutes) for hundreds of columns.
         select!(people_data, :person_id => :backend_id, :first_name => :id)
         rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
-        joined = innerjoin(people_data, responses_data, on = :backend_id)
+        # If people_data is free from missings, then matchmissing equal should not introduce 
+        # missings, I think.
+        dropmissing!(people_data)
+        joined = innerjoin(people_data, responses_data, on = :backend_id, matchmissing = :equal)
         select!(joined, Not(:backend_id))
     else 
         joined = responses_data
