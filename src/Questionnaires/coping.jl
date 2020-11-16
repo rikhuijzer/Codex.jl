@@ -7,10 +7,11 @@ using Query
 export 
     julliet2scores
 
-reverse(ans::Number)::Number = 6 - ans
-
 # For Julliet, 2018 and 2019 are the same. 
 # 2020 is a bit different, but it shouldn't matter for this code, see `diff`
+# For more information, see the e-mail with the subject `Julliet`.
+
+# This file is not tested in-depth, because the procedure is the same as delta.
 
 ans_mapping = Dict(
     "Nooit" => 1, 
@@ -19,37 +20,36 @@ ans_mapping = Dict(
     "Vaak" => 4, 
     "Altijd" => 5
 )
-
-is_reversed(question::Int)::Bool
     
+ans2num(ans)::Int = return ans_mapping[ans]
 
-function ans2num(ans, question::Int, year::Int)::Number
-    ans = year == 2018 ? 
-        Codex.rescale(ans_2018_mapping[ans], 1, 5, 1, 7) : 
-        (typeof(ans) != Int ? get(ans, Int) : ans)
-    return is_reversed(question, year) ? reverse(ans) : ans
-end
-
-function delta2scores(df::DataFrame)
+function julliet2scores(df::DataFrame)
     result = @from i in df begin
-        @let score = is_2018(df) ?
-            sum([
-                ans2num(i.v1, 1, 2018),
-                ans2num(i.v2, 2, 2018),
-                ans2num(i.v3, 3, 2018),
-                ans2num(i.v4, 4, 2018),
-                ans2num(i.v5, 5, 2018),
-            ]) :
-            sum([
-                ans2num(i.v2, 2, 2019),
-                ans2num(i.v3, 3, 2019),
-                ans2num(i.v4, 4, 2019),
-                ans2num(i.v5, 5, 2019),
-                ans2num(i.v6, 6, 2019),
-            ])
-        @let achievable = is_2018(df) ? "" : 
-            (typeof(i.v7) != String ? get(i.v7, String) : i.v7)
-        @select { i.id, i.completed_at, score, achievable }
+        # Problem focused coping.
+        @let problem_focused = sum([
+            ans2num(i.v1),
+            ans2num(i.v5),
+            ans2num(i.v8),
+            ans2num(i.v11),
+            ans2num(i.v14)
+        ])
+        # Emotion focused coping.
+        @let emotion_focused = sum([
+            ans2num(i.v3),
+            ans2num(i.v7),
+            ans2num(i.v10),
+            ans2num(i.v13),
+            ans2num(i.v4)
+        ])
+        # Seeking social support.
+        @let seeking_support = sum([
+            ans2num(i.v2),
+            ans2num(i.v6),
+            ans2num(i.v9),
+            ans2num(i.v15),
+            ans2num(i.v12)
+        ])
+        @select { i.id, i.completed_at, problem_focused, emotion_focused, seeking_support }
         @collect DataFrame
     end
 
@@ -57,8 +57,9 @@ function delta2scores(df::DataFrame)
     DataFrame(
         id = string.(result[:, :id]),
         completed_at = string.(result[:, :completed_at]),
-        score = float.(result[:, :score]),
-        achievable = string.(result[:, :achievable])
+        problem_focused = Int.(result[:, :problem_focused]),
+        emotion_focused = Int.(result[:, :emotion_focused]),
+        seeking_support = Int.(result[:, :seeking_support])
     )
 end
 

@@ -38,6 +38,7 @@ include("personality.jl")
 include("intelligence.jl")
 include("toughness.jl")
 include("optimism.jl")
+include("coping.jl")
 include("inspire.jl")
 include("plot.jl")
 
@@ -101,6 +102,8 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         joined = Intelligence.golf2scores(joined)
     elseif nato_name == "india"
         joined = Toughness.india2scores(joined)
+    elseif nato_name == "julliet"
+        joined = Coping.julliet2scores(joined)
     elseif nato_name == "kilo"
         joined = Optimism.kilo2scores(joined)
     elseif nato_name == "lima"
