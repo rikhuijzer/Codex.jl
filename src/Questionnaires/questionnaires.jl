@@ -30,7 +30,8 @@ function get_scores(df::DataFrame, items::Items)::Array
         reversed_scores = repeat([0], nrow(df))
     end
 
-    normal_scores .+ reversed_scores
+    # Sum both and take the average.
+    (normal_scores .+ reversed_scores) ./ (length(items.normal) + length(items.reversed))
 end
 
 include("commitment.jl")
