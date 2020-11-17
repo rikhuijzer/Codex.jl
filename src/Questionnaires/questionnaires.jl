@@ -15,7 +15,7 @@ end
 reverse(x::Int) = 6 - x
 reverse(x::Missing) = missing
 
-function get_scores(df::DataFrame, items::Items)::Array
+function get_scores(df::DataFrame, items::Items; average=true)::Array
     if length(items.normal) != 0
         v_normal = [Symbol("v$i") for i in items.normal]
         normal_scores = [sum(row[v_normal]) for row in eachrow(df[:, v_normal])]
@@ -30,8 +30,10 @@ function get_scores(df::DataFrame, items::Items)::Array
         reversed_scores = repeat([0], nrow(df))
     end
 
-    # Sum both and take the average.
-    (normal_scores .+ reversed_scores) ./ (length(items.normal) + length(items.reversed))
+    totals = normal_scores .+ reversed_scores
+    n_items = length(items.normal) + length(items.reversed)
+    
+    return average ? totals ./ n_items : totals
 end
 
 include("commitment.jl")

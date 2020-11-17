@@ -60,12 +60,13 @@ function india2scores(df::DataFrame)
         select!(df, :, "$(name)_new" => name)
     end
 
-    df[:, :challenge] = get_scores(df, challenge)
-    df[:, :commitment] = get_scores(df, commitment)
-    df[:, :emotional_control] = get_scores(df, emotional_control)
-    df[:, :life_control] = get_scores(df, life_control)
-    df[:, :confidence_in_abilities] = get_scores(df, confidence_in_abilities)
-    df[:, :interpersonal_confidence] = get_scores(df, interpersonal_confidence)
+    get_scores_part(items) = get_scores(df, items; average = false)
+    df[:, :challenge] = get_scores_part(challenge)
+    df[:, :commitment] = get_scores_part(commitment)
+    df[:, :emotional_control] = get_scores_part(emotional_control)
+    df[:, :life_control] = get_scores_part(life_control)
+    df[:, :confidence_in_abilities] = get_scores_part(confidence_in_abilities)
+    df[:, :interpersonal_confidence] = get_scores_part(interpersonal_confidence)
 
     select!(df, :id, :completed_at,
         :challenge, :commitment, :emotional_control,
