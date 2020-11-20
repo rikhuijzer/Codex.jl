@@ -98,10 +98,23 @@ function nrow_per_group(df, group::Symbol; col1="group", col2="nrow")::DataFrame
     select(out, :col1 => col1, :col2 => col2)
 end
 
-"""
-    accuracy(trues, preds)::Number
 
-The number of correct predictions in `pred` (by comparing `true` to `prediction`) divided by the total number of predictions.
 """
-accuracy(trues, preds)::Number = count(trues .== preds) / length(preds)
+    stdout_stderr(f::Function)::Tuple
+Returns a tuple containing `(exitcode, stdout, stderr)` for function a function which returns
+a pipeline.
+Specifically, `f` should have type `f(out::String, err::String)::CmdRedirect`.
+"""
+function stdout_stderr(f)::Tuple
+    out = IOBuffer()
+    err = IOBuffer()
 
+    process = run(f(out, err))
+
+    exitcode = process.exitcode
+    out_s = String(take!(out))
+    err_s = String(take!(err))
+    close(out)
+    close(err)
+    (exitcode, out_s, err_s)
+end

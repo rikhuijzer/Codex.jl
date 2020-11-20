@@ -5,6 +5,7 @@ makedocs(
     sitename = "Codex.jl",
     pages = [
         "Index" => "index.md",
+        "Backup" => "backup.md",
         "TransformExport" => "transformexport.md",
         "Questionnaires" => "questionnaires.md"
     ],

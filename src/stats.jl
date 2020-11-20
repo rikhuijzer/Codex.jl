@@ -18,3 +18,10 @@ s_pooled(n1, s1, n2, s2) = sqrt(
 s_pooled(A::Array, B::Array) = s_pooled(length(A), std(A), length(B), std(B))
 cohens_d(A::Array, B::Array) = cohens_d(mean(A), mean(B), s_pooled(A, B))
 cohens_d(n1, μ1, s1, n2, μ2, s2) = cohens_d(μ1, μ2, s_pooled(n1, s1, n2, s2))
+
+"""
+    accuracy(trues, preds)::Number
+
+The number of correct predictions in `pred` (by comparing `true` to `prediction`) divided by the total number of predictions.
+"""
+accuracy(trues, preds)::Number = count(trues .== preds) / length(preds)
