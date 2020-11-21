@@ -105,14 +105,13 @@ function nrow_per_group(df, group::Symbol; col1="group", col2="nrow")::DataFrame
     select(out, :col1 => col1, :col2 => col2)
 end
 
-
 """
-    stdout_stderr(f::Function) -> Output
-    stdout_stderr(cmd::Cmd) -> Output
+    output(f::Function) -> Output
+    output(cmd::Cmd) -> Output
 
 Evaluates `f` of type `f(out::String, err::String)::CmdRedirect` or `cmd::Cmd`.
 """
-function stdout_stderr(f::Function)::Output
+function output(f::Function)::Output
     # Don't need fancy live scrolling log because it runs in CI anyway.
     out = IOBuffer()
     err = IOBuffer()
@@ -133,5 +132,4 @@ function stdout_stderr(f::Function)::Output
     Output(exitcode, out_s, err_s)
 end
 
-stdout_stderr(cmd::Cmd)::Output = 
-    stdout_stderr((out, err) -> pipeline(cmd, stdout=out, stderr=err))
+output(cmd::Cmd)::Output = output((out, err) -> pipeline(cmd, stdout=out, stderr=err))

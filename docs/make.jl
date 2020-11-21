@@ -4,8 +4,9 @@ using Codex
 makedocs(
     sitename = "Codex.jl",
     pages = [
-        "Index" => "index.md",
+        "Codex" => "index.md",
         "Backup" => "backup.md",
+        "Backup.GitLab" => "backup/gitlab.md"
         "TransformExport" => "transformexport.md",
         "Questionnaires" => "questionnaires.md"
     ],

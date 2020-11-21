@@ -30,5 +30,5 @@ Wrapper around `rclone sync`.
 """
 function rsync(a::AbstractString, b::AbstractString; flags=[""])::Output
     cmd = `rclone sync $a $b $(join(flags, ' '))`
-    Codex.stdout_stderr(cmd)
+    Codex.output(cmd)
 end
