@@ -2,6 +2,7 @@ using DataFrames
 using Dates
 
 export 
+    Output,
     apply,
     categorical2simple,
     dirparent,
@@ -11,6 +12,12 @@ export
     project_root,
     rmextension,
     today
+
+struct Output
+    exitcode::Int
+    stdout::String
+    stderr::String
+end
 
 """
     apply(fns, obj)
@@ -100,14 +107,12 @@ end
 
 
 """
-    stdout_stderr(f::Function) -> Tuple
-    stdout_stderr(cmd::Cmd) -> Tuple
+    stdout_stderr(f::Function) -> Output
+    stdout_stderr(cmd::Cmd) -> Output
 
-Returns a tuple containing `(exitcode, stdout, stderr)` a function which returns
-a pipeline.
-Specifically, `f` should have type `f(out::String, err::String)::CmdRedirect`.
+Evaluates `f` of type `f(out::String, err::String)::CmdRedirect` or `cmd::Cmd`.
 """
-function stdout_stderr(f::Function)::Tuple
+function stdout_stderr(f::Function)::Output
     # Don't need fancy live scrolling log because it runs in CI anyway.
     out = IOBuffer()
     err = IOBuffer()
@@ -120,12 +125,13 @@ function stdout_stderr(f::Function)::Tuple
         @error "Error while running $cmd. Printing stdout and stderr:"
         out_s = take_str!(out)
         err_s = take_str!(err)
-        return (-1, out_s, err_s)
+        return Output(-1, out_s, err_s)
     end
 
     out_s = take_str!(out)
     err_s = take_str!(err)
-    (exitcode, out_s, err_s)
+    Output(exitcode, out_s, err_s)
 end
 
-stdout_stderr(cmd::Cmd) = stdout_stderr((out, err) -> pipeline(cmd, stdout=out, stderr=err))
+stdout_stderr(cmd::Cmd)::Output = 
+    stdout_stderr((out, err) -> pipeline(cmd, stdout=out, stderr=err))

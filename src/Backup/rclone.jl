@@ -14,11 +14,21 @@ function set_rclone_config(config::AbstractString)
 end
 
 """
-    sync(a::AbstractString, b::AbstractString; flags=[""]) -> Tuple
+    rcopy(a::AbstractString, b::AbstractString; flags=[""]) -> Tuple
 
-Make source and dest identical, modifying destination only.
+Wrapper around `rclone copy`.
 """
-function sync(a::AbstractString, b::AbstractString; flags=[""])::Tuple
+function rcopy(a::AbstractString, b::AbstractString; flags=[""])::Tuple
+    cmd = `rclone copy $a $b $(join(flags, ' '))`
+    Codex.stdout_stderr(cmd)
+end
+
+"""
+    rsync(a::AbstractString, b::AbstractString; flags=[""]) -> Output
+
+Wrapper around `rclone sync`.
+"""
+function rsync(a::AbstractString, b::AbstractString; flags=[""])::Output
     cmd = `rclone sync $a $b $(join(flags, ' '))`
     Codex.stdout_stderr(cmd)
 end

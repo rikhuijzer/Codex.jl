@@ -12,7 +12,7 @@ Backup = Codex.Backup
     end
     target = mkpath(joinpath(tmp, "b"))
     
-    exitcode, out, err = Backup.sync(source, target; flags = ["--verbose"])
-    @test exitcode == 0
-    @test contains(err, "Copied (new)")
+    output = Backup.rsync(source, target; flags = ["--verbose"])
+    @test output.exitcode == 0
+    @test contains(output.stderr, "Copied (new)")
 end

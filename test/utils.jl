@@ -32,7 +32,7 @@ import CategoricalArrays
 
     cmd = `echo lorem`
     f(out, err) = pipeline(cmd, stdout=out, stderr=err)
-    expected = (0, "lorem\n", "")
+    expected = Output(0, "lorem\n", "")
     @test Codex.stdout_stderr(f) == expected
     @test Codex.stdout_stderr(cmd) == expected
 end
