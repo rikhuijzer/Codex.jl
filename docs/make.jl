@@ -6,7 +6,7 @@ makedocs(
     pages = [
         "Codex" => "index.md",
         "Backup" => "backup.md",
-        "Backup.GitLab" => "backup/gitlab.md",
+        "Backup.GitLab" => "gitlab.md",
         "TransformExport" => "transformexport.md",
         "Questionnaires" => "questionnaires.md"
     ],
