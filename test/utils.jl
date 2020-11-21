@@ -30,6 +30,9 @@ import CategoricalArrays
     df = DataFrame(group = [4, 9, 9])
     @test Codex.nrow_per_group(df, :group; col1="group", col2="n") == DataFrame(group = [4, 9], n = [1, 2])
 
-    f(out, err) = pipeline(`echo lorem`, stdout=out, stderr=err)
-    @test Codex.stdout_stderr(f) == (0, "lorem\n", "")
+    cmd = `echo lorem`
+    f(out, err) = pipeline(cmd, stdout=out, stderr=err)
+    expected = (0, "lorem\n", "")
+    @test Codex.stdout_stderr(f) == expected
+    @test Codex.stdout_stderr(cmd) == expected
 end

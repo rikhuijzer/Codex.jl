@@ -100,21 +100,32 @@ end
 
 
 """
-    stdout_stderr(f::Function)::Tuple
-Returns a tuple containing `(exitcode, stdout, stderr)` for function a function which returns
+    stdout_stderr(f::Function) -> Tuple
+    stdout_stderr(cmd::Cmd) -> Tuple
+
+Returns a tuple containing `(exitcode, stdout, stderr)` a function which returns
 a pipeline.
 Specifically, `f` should have type `f(out::String, err::String)::CmdRedirect`.
 """
-function stdout_stderr(f)::Tuple
+function stdout_stderr(f::Function)::Tuple
+    # Don't need fancy live scrolling log because it runs in CI anyway.
     out = IOBuffer()
     err = IOBuffer()
+    take_str!(io) = String(take!(io))
+    exitcode = 99
+    try 
+        process = run(f(out, err))
+        exitcode = process.exitcode
+    catch
+        @error "Error while running $cmd. Printing stdout and stderr:"
+        out_s = take_str!(out)
+        err_s = take_str!(err)
+        return (-1, out_s, err_s)
+    end
 
-    process = run(f(out, err))
-
-    exitcode = process.exitcode
-    out_s = String(take!(out))
-    err_s = String(take!(err))
-    close(out)
-    close(err)
+    out_s = take_str!(out)
+    err_s = take_str!(err)
     (exitcode, out_s, err_s)
 end
+
+stdout_stderr(cmd::Cmd) = stdout_stderr((out, err) -> pipeline(cmd, stdout=out, stderr=err))
