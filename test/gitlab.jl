@@ -31,5 +31,17 @@ GitLab = Codex.GitLab
         schedules = GitLab.enforce_schedules(project, params; variables) 
         @test GitLab.n_schedules(project) == 2
         @test schedules[1].active == false
+
+        # Create project variable.
+        @test GitLab.create_variable(project, 
+            (key = "key3", value = "value3")
+        ).key == "key3"
+
+        variables = [
+            (key = string(Dates.now(), "-3"), value = "value3", protected = true),
+            (key = string(Dates.now(), "-4"), value = "value4")
+        ]
+        enforce_variables(project, variables)
+        @test length(GitLab.list_variables(project)) == 2
     end
 end

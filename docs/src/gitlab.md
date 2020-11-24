@@ -1,6 +1,6 @@
 # GitLab
 
-Wrappers around the GitLab API.
+Julia interface to some endpoints of the GitLab API v4.
 
 ## Public
 

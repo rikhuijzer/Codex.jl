@@ -7,7 +7,8 @@ using HTTP
 using HTTP: Response
 
 export
-    enforce_schedules
+    enforce_schedules,
+    enforce_variables
 
 struct Config
     token::AbstractString
@@ -132,6 +133,43 @@ function enforce_schedules(p::Project, params::Vector; variables=[])::Vector{Nam
     list = [create_schedule(p, param) for param in params]
     [create_schedule_variable(Schedule(p, t[2].id), variables[t[1]]) for t in enumerate(list)]
     list 
+end
+
+function list_variables(p::Project)::Vector
+    endpoint = "$(project_url(p))/variables"
+    r = HTTP.request("GET", endpoint, auth_header(p))
+    json(r)
+end
+
+function delete_variable(p::Project, key::String)::NamedTuple
+    endpoint = "$(project_url(p))/variables/$key"
+    r = HTTP.request("DELETE", endpoint, auth_header(p))
+    json(r)
+end
+
+function create_variable(p::Project, param::NamedTuple)::NamedTuple
+    endpoint = "$(project_url(p))/variables"
+    r = HTTP.request("POST", endpoint, auth_header(p), form(param))
+    json(r)
+end
+
+"""
+    enforce_variables(p::Project, variables::Vector) -> Vector
+
+Enforces variables for project `p`.
+For example, 
+```
+variables = [
+    (key = "key1", value = "value1", protected = true),
+    (key = "key2", value = "value2", protected = false)
+]
+```
+"""
+function enforce_variables(p::Project, variables::Vector)::Vector
+    list = list_variables(p)
+    [delete_variable(p, x.key) for x in list]
+    @assert length(list_variables(p)) == 0
+    [create_variable(p, param) for param in variables] 
 end
 
 end # module
