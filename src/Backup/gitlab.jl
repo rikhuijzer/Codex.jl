@@ -1,37 +1,58 @@
 module GitLab
 
+import JSON2
+
 using Codex
+using HTTP
+using HTTP: Response
+
+## TODO: Remove **all** pipeline_schedules before adding a new one.
+
+struct Config
+    token::AbstractString # GitLab token.
+    url::AbstractString # GitLab URL.
+end
+
+auth_header(config::Config) = Dict("PRIVATE-TOKEN" => config.token)
+form(params) = HTTP.Form(nt2dict(params))
+json(r::Response) = JSON2.read(String(r.body))
 
 """
-    form_data(attrs::NamedTuple) -> String
+    list_schedules(config::Config, project_id::Int) -> Array
 
-Prepares attributes to be passed to as Form data via cURL.
-For example, converts `(a = 3, b = 4)` into
-```
---form a="3" \\
---form b="4" 
-```
+Returns an array of named tuples `(id = ..., description = ..., ...)`.
 """
-function form_data(attrs::NamedTuple)::String
-    form_items = ["--form $(t[1]):\"$(t[2])\"" for t in zip(keys(attrs), attrs)]
-    join(form_items, " \\\n ")
+function list_schedules(config::Config, project_id::Int)::Array
+    r = HTTP.request("GET",
+        "$(config.url)/api/v4/projects/$project_id/pipeline_schedules",
+        auth_header(config)
+    )
+    list = json(r)
 end
 
 """
-    set_schedule(url::String, project_id::Int, schedule_id::Int, attrs::NamedTuple) -> Output
+    create_schedule(config::Config, project_id::Int, params::NamedTuple) -> NamedTuple
 
-See https://docs.gitlab.com/ee/api/pipeline_schedules.html.
-Requires `ENV["GITLAB_PAT"]` to be set.
 """
-function set_schedule(url::String, project_id::Int, schedule_id::Int, attrs::NamedTuple)::Output
-    pat = ENV["GITLAB_PAT"]
-    cmd = `curl \
-        --request PUT \
-        --header "PRIVATE-TOKEN: $pat" \
-        $(unpack_attributes(attrs)) \
-        $url/api/v4/projects/$project_id/pipeline_schedules/$schedule_id
-    `
-    output(cmd)
+function create_schedule(config::Config, project_id::Int, params::NamedTuple)::NamedTuple
+    r = HTTP.request("POST",
+        "$(config.url)/api/v4/projects/$project_id/pipeline_schedules",
+        auth_header(config),
+        form(params)
+    )
+    json(r)
+end
+
+"""
+    delete_schedule(config::Config, project_id::Int, schedule_id::Int)
+
+"""
+function delete_schedule(config::Config, project_id::Int, schedule_id::Int)
+    r = HTTP.request("DELETE",
+        "$(config.url)/api/v4/projects/$project_id/pipeline_schedules/$schedule_id",
+        auth_header(config)
+    )
+    json(r)
 end
 
 end # module

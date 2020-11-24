@@ -8,6 +8,7 @@ export
     dirparent,
     has_duplicates,
     map_by_df,
+    nt2dict,
     nofalse,
     project_root,
     rmextension,
@@ -133,3 +134,5 @@ function output(f::Function)::Output
 end
 
 output(cmd::Cmd)::Output = output((out, err) -> pipeline(cmd, stdout=out, stderr=err))
+
+nt2dict(nt::NamedTuple)::Dict = Dict(zip(keys(nt), nt))
