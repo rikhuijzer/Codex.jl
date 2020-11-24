@@ -22,15 +22,18 @@ end
 
 """
     apply(fns, obj)
-    apply(fns)::Function
+    apply(fns) -> Function
+    apply(fn::Function, nt::NamedTuple) -> NamedTuple
 
-Apply functions `fns` to object `obj`.
+Apply function `fn` or functions `fns` to object.
 The functions are applied in order, unlike the behaviour of function composition.
 Also defines partial function.
 (For partial declarations in `Base`, see issue #35052 or `endswith(suffix)`.)
 """
 apply(fns, obj) = ∘(reverse(fns)...)(obj)
 apply(fns) = obj -> apply(fns, obj)
+
+apply(fn::Function, nt::NamedTuple)::NamedTuple = (; Dict([(t[1], string(t[2])) for t in zip(keys(nt), nt)])...)
 
 """
     categorical2simple(A::CategoricalArray)
