@@ -6,6 +6,9 @@ using Codex
 using HTTP
 using HTTP: Response
 
+export
+    enforce_schedules
+
 struct Config
     token::AbstractString
     url::AbstractString
@@ -13,6 +16,7 @@ end
 
 struct Project
     config::Config
+    # Not using urlencoded NAMESPACE/PROJECT_NAME for simplicity.
     project_id::Int
 end
 project_url(p::Project) = 
@@ -74,19 +78,6 @@ function delete_schedule(s::Schedule)::NamedTuple
 end
 
 """
-    enforce_schedules(p::Project, params::Vector) -> Vector{NamedTuple}
-
-Enforce schedules for `project_id` as defined by `params`.
-For example, `params = [(description = "A", ...), (description = "B", ...)]`.
-"""
-function enforce_schedules(p::Project, params::Vector)::Vector{NamedTuple}
-    list = list_schedules(p)
-    [delete_schedule(Schedule(p, nt.id)) for nt in list]
-    @assert n_schedules(p) == 0
-    [create_schedule(p, param) for param in params]
-end
-
-"""
     create_schedule_variable(v::Variable, param::NamedTuple) -> NamedTuple
 
 For param, see 
@@ -100,6 +91,47 @@ function create_schedule_variable(s::Schedule, param::NamedTuple)::NamedTuple
     nt = json(r)
     @assert param[:value] == nt[:value]
     nt
+end
+
+"""
+    create_schedule_variable(s::Schedule, params::Vector) -> Vector
+
+Set multiple variables via `params`.
+For example,
+```
+params = [
+    (key = "key1", value = "value1"),
+    (key = "key2", value = "value2")
+]
+```
+"""
+function create_schedule_variable(s::Schedule, params::Vector)::Vector
+    [create_schedule_variable(s::Schedule, param) for param in params]
+end
+
+"""
+    enforce_schedules(p::Project, params::Vector; variables=[]) -> Vector{NamedTuple}
+
+Enforce schedules for `p` as defined by `params`.
+Variables per schedule can be set via `variables`.
+For example,
+```
+params = [
+    (description = "A", ...),
+    (description = "B", ...)
+]
+variables = [
+    [(key = "key1", value = "value1")], # for schedule A.
+    [(key = "key1", value = "value2")] # for schedule B.
+]
+```
+"""
+function enforce_schedules(p::Project, params::Vector; variables=[])::Vector{NamedTuple}
+    [delete_schedule(Schedule(p, nt.id)) for nt in list_schedules(p)]
+    @assert n_schedules(p) == 0
+    list = [create_schedule(p, param) for param in params]
+    [create_schedule_variable(Schedule(p, t[2].id), variables[t[1]]) for t in enumerate(list)]
+    list 
 end
 
 end # module
