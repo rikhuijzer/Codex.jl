@@ -1,8 +1,8 @@
-using Codex.Backup.GitLab
+using Codex.GitLab
 using Dates
 using Test
 
-GitLab = Codex.Backup.GitLab
+GitLab = Codex.GitLab
 
 @testset "GitLab" begin
     # Allow tests to pass locally when GITLAB_TOKEN is not set.

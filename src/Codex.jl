@@ -1,5 +1,6 @@
 module Codex
 
+include("gitlab.jl")
 include("utils.jl")
 include("stats.jl")
 include("df-transformations.jl")

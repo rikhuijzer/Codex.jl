@@ -2,6 +2,7 @@ using Codex
 using Test
 
 @testset "Codex" begin
+    include("gitlab.jl")
     include("utils.jl")
     include("stats.jl")
     include("df-transformations.jl")

@@ -6,11 +6,11 @@ using Codex
 using HTTP
 using HTTP: Response
 
-## TODO: Remove **all** pipeline_schedules before adding a new one.
+## TODO: Assert response.params == params. 
 
 struct Config
-    token::AbstractString # GitLab token.
-    url::AbstractString # GitLab URL.
+    token::AbstractString
+    url::AbstractString
 end
 
 auth_header(config::Config) = Dict("PRIVATE-TOKEN" => config.token)
@@ -18,11 +18,13 @@ form(params) = HTTP.Form(nt2dict(params))
 json(r::Response) = JSON2.read(String(r.body))
 
 """
-    list_schedules(config::Config, project_id::Int) -> Array
+    list_schedules(config::Config, project_id::Int) -> Array{NamedTuple,1}
 
 Returns an array of named tuples `(id = ..., description = ..., ...)`.
+For `params`, see
+<https://docs.gitlab.com/ee/api/pipeline_schedules.html#get-all-pipeline-schedules>.
 """
-function list_schedules(config::Config, project_id::Int)::Array
+function list_schedules(config::Config, project_id::Int)::Array{NamedTuple,1}
     r = HTTP.request("GET",
         "$(config.url)/api/v4/projects/$project_id/pipeline_schedules",
         auth_header(config)
@@ -33,6 +35,8 @@ end
 """
     create_schedule(config::Config, project_id::Int, params::NamedTuple) -> NamedTuple
 
+For `params`, see 
+<https://docs.gitlab.com/ee/api/pipeline_schedules.html#create-a-new-pipeline-schedule>.
 """
 function create_schedule(config::Config, project_id::Int, params::NamedTuple)::NamedTuple
     r = HTTP.request("POST",
@@ -44,10 +48,11 @@ function create_schedule(config::Config, project_id::Int, params::NamedTuple)::N
 end
 
 """
-    delete_schedule(config::Config, project_id::Int, schedule_id::Int)
+    delete_schedule(config::Config, project_id::Int, schedule_id::Int) -> NamedTuple
 
+Deletes `schedule_id` for `project_id`.
 """
-function delete_schedule(config::Config, project_id::Int, schedule_id::Int)
+function delete_schedule(config::Config, project_id::Int, schedule_id::Int)::NamedTuple
     r = HTTP.request("DELETE",
         "$(config.url)/api/v4/projects/$project_id/pipeline_schedules/$schedule_id",
         auth_header(config)
