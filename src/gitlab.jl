@@ -164,6 +164,8 @@ variables = [
     (key = "key2", value = "value2", protected = false)
 ]
 ```
+This method can fail with `key` exists.
+Possibly because the create request is too quick.
 """
 function enforce_variables(p::Project, variables::Vector)::Vector
     list = list_variables(p)

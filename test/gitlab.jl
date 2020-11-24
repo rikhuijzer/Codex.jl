@@ -38,8 +38,8 @@ GitLab = Codex.GitLab
         ).key == "key3"
 
         variables = [
-            (key = "key3", value = string(Dates.now(), "-3"), protected = true),
-            (key = "key4", value = string(Dates.now(), "-4"))
+            (key = "key4", value = string(Dates.now(), "-4"), protected = true),
+            (key = "key5", value = string(Dates.now(), "-5"))
         ]
         enforce_variables(project, variables)
         @test length(GitLab.list_variables(project)) == 2
