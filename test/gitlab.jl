@@ -16,10 +16,15 @@ GitLab = Codex.GitLab
             (description = "Test", ref = "master", cron = "0 1 * * *")
         ).description == "Test"
 
-        params = (description = string(Dates.now()), ref = "master", 
+        param = (description = string(Dates.now()), ref = "master", 
             cron = "0 2 * * *", active = false)
-        schedules = GitLab.enforce_schedules(project, [params, params]) 
+        schedules = GitLab.enforce_schedules(project, [param, param]) 
         @test GitLab.n_schedules(project) == 2
         @test schedules[1].active == false
+
+        schedule = GitLab.Schedule(project, schedules[1].id)
+        param = (key = "test_key", value = "test_value")
+        # Smoke test.
+        GitLab.create_schedule_variable(schedule, param)
     end
 end

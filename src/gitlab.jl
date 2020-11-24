@@ -25,17 +25,9 @@ end
 schedule_url(s::Schedule) = 
     "$(project_url(s.project))/pipeline_schedules/$(s.schedule_id)"
 
-struct Variable
-    schedule::Schedule
-    key::AbstractString
-end
-variable_url(v::Variable) = 
-    "$(schedule_url(v.schedule))/variables/$(v.key)" 
-
 auth_header(config::Config) = Dict("PRIVATE-TOKEN" => config.token)
 auth_header(p::Project) = auth_header(p.config)
 auth_header(s::Schedule) = auth_header(s.project)
-auth_header(v::Variable) = auth_header(v.schedule)
 
 # All values are coverted to string to avoid errors when using `active = false`.
 form(param::NamedTuple) = HTTP.Form(nt2dict(apply(string, param)))
@@ -95,11 +87,16 @@ function enforce_schedules(p::Project, params::Vector)::Vector{NamedTuple}
 end
 
 """
-    edit_schedule_variable(v::Variable, param::NamedTuple) -> NamedTuple
+    create_schedule_variable(v::Variable, param::NamedTuple) -> NamedTuple
 
+For param, see 
+<https://docs.gitlab.com/ee/api/pipeline_schedules.html#create-a-new-pipeline-schedule-variable>.
+This codebase does not define edit or delete methods because the variables
+are deleted via `enforce_schedules`.
 """
-function edit_schedule_variable(v::Variable, param::NamedTuple)::NamedTuple
-    r = HTTP.request("PUT", variable_url(v), auth_header(v), form(param))
+function create_schedule_variable(s::Schedule, param::NamedTuple)::NamedTuple
+    endpoint = "$(schedule_url(s))/variables"
+    r = HTTP.request("POST", endpoint, auth_header(s), form(param))
     nt = json(r)
     @assert param[:value] == nt[:value]
     nt
