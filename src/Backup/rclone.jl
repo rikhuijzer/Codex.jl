@@ -14,13 +14,13 @@ function set_rclone_config(config::AbstractString)
 end
 
 """
-    rcopy(a::AbstractString, b::AbstractString; flags=[""]) -> Tuple
+    rcopy(a::AbstractString, b::AbstractString; flags=[""]) -> Output
 
 Wrapper around `rclone copy`.
 """
-function rcopy(a::AbstractString, b::AbstractString; flags=[""])::Tuple
+function rcopy(a::AbstractString, b::AbstractString; flags=[""])::Output
     cmd = `rclone copy $a $b $(join(flags, ' '))`
-    Codex.stdout_stderr(cmd)
+    Codex.output(cmd)
 end
 
 """
