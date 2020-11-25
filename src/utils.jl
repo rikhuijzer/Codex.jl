@@ -125,9 +125,13 @@ function output(f::Function)::Output
         process = run(f(out, err))
         exitcode = process.exitcode
     catch
-        @error "Error while running $cmd. Printing stdout and stderr:"
+        @error "Error while running function. Printing stdout and stderr:"
         out_s = take_str!(out)
+        println("stdout = ")
+        println.(split(out_s, '\n'))
         err_s = take_str!(err)
+        println("stderr = ")
+        println.(split(err_s, '\n'))
         return Output(-1, out_s, err_s)
     end
 

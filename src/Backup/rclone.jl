@@ -19,7 +19,7 @@ end
 Wrapper around `rclone copy`.
 """
 function rcopy(a::AbstractString, b::AbstractString; flags=[""])::Output
-    cmd = `rclone copy $a $b $(join(flags, ' '))`
+    cmd = `rclone copy $a $b $flags`
     Codex.output(cmd)
 end
 
@@ -29,6 +29,6 @@ end
 Wrapper around `rclone sync`.
 """
 function rsync(a::AbstractString, b::AbstractString; flags=[""])::Output
-    cmd = `rclone sync $a $b $(join(flags, ' '))`
+    cmd = `rclone sync $a $b $flags`
     Codex.output(cmd)
 end
