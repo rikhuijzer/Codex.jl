@@ -131,7 +131,9 @@ function enforce_schedules(p::Project, params::Vector; variables=[])::Vector{Nam
     [delete_schedule(Schedule(p, nt.id)) for nt in list_schedules(p)]
     @assert n_schedules(p) == 0
     list = [create_schedule(p, param) for param in params]
-    [create_schedule_variable(Schedule(p, t[2].id), variables[t[1]]) for t in enumerate(list)]
+    if 0 < length(variables) 
+        [create_schedule_variable(Schedule(p, t[2].id), variables[t[1]]) for t in enumerate(list)]
+    end
     list 
 end
 

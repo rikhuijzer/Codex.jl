@@ -16,14 +16,16 @@ GitLab = Codex.GitLab
             (description = "Test", ref = "master", cron = "0 1 * * *")
         ).description == "Test"
 
-        param = (description = string(Dates.now()), ref = "master", 
-            cron = "0 2 * * *", active = false)
         params = [
             (description = string(Dates.now(), "-1"), ref = "master",
             cron = "0 1 * * *", active = false),
             (description = string(Dates.now(), "-2"), ref = "master",
             cron = "0 2 * * *", active = false)
         ]
+
+        # Smoke test for `variables = []`.
+        GitLab.enforce_schedules(project, [params[1]])
+
         variables = [
             [(key = "key1", value = "value1")], 
             [(key = "key2", value = "value2")] 
@@ -43,5 +45,7 @@ GitLab = Codex.GitLab
         ]
         enforce_variables(project, variables)
         @test length(GitLab.list_variables(project)) == 2
+    else
+        @warn "Skipping the GitLab tests"
     end
 end
