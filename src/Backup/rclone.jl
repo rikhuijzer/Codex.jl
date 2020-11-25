@@ -6,7 +6,7 @@ using Codex
 Set the rclone configuration by writing `config` to the rclone config file.
 """
 function set_rclone_config(config::AbstractString)
-    file = last(split(read(`rclone config file`, String), ':'))
+    file = strip(last(split(read(`rclone config file`, String), ':')))
     
     open(file, "w") do io
         write(io, config)    
