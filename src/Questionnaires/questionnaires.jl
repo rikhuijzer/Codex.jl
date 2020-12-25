@@ -90,7 +90,7 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         # If people_data is free from missings, then matchmissing equal should not introduce 
         # missings, I think.
         dropmissing!(people_data)
-        joined = innerjoin(people_data, responses_data, on = :backend_id, matchmissing = :equal)
+        joined = innerjoin(people_data, responses_data, on=:backend_id)
         select!(joined, Not(:backend_id))
     else 
         joined = responses_data
