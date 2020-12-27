@@ -298,8 +298,8 @@ toughness_studies = vcat(
   ),
 )
 
-function prepare_toughness_plot(studies::DataFrame)::DataFrame
-    india = Codex.Questionnaires.first_measurement(Dashboard.raw_dir(), "india")
+function prepare_toughness_plot(raw_dir, studies::DataFrame)::DataFrame
+    india = Codex.Questionnaires.first_measurement(raw_dir, "india")
     from_data = prepare_data_plot(india)
     df = vcat(from_data, studies)
     df[!, :domain] = string.(df[!, :domain])
