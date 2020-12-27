@@ -308,9 +308,9 @@ function prepare_toughness_plot(raw_dir, studies::DataFrame)::DataFrame
     df
 end
 
-function prepare_toughness_plot(studies::DataFrame, domain)::DataFrame
+function prepare_toughness_plot(raw_dir, studies::Function, domain)::DataFrame
     # This is very inefficient, but ensures ordering.
-    df = prepare_toughness_plot(studies)
+    df = prepare_toughness_plot(raw_dir, studies)
     df[!, :domain] = Symbol.(df[!, :domain])
     filtered = filter(:domain => d -> d == Symbol(domain), df)
 end
