@@ -5,6 +5,7 @@ on:
     branches:
       - master
     tags: '*'
+  pull_request:
 
 jobs:
   tests:
@@ -24,6 +25,7 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/julia-buildpkg@latest
