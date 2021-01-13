@@ -187,15 +187,15 @@ end
 
 function first_measurement(raw_dir::String, nato_name::String) 
     parameters = [
-        (raw_dir, "2018-first", nato_name, "graduates", 1),
-        (raw_dir, "2018-first", nato_name, "dropouts-medical", 1),
-        (raw_dir, "2018-first", nato_name, "dropouts-non-medical", 1),
-        (raw_dir, "2019-first", nato_name, "graduates", 1),
-        (raw_dir, "2019-first", nato_name, "dropouts-medical", 1),
-        (raw_dir, "2019-first", nato_name, "dropouts-non-medical", 1),
-        (raw_dir, "2020-operators", nato_name, "operators", 1)
+        (raw_dir, "2018-first", "graduates", 1),
+        (raw_dir, "2018-first", "dropouts-medical", 1),
+        (raw_dir, "2018-first", "dropouts-non-medical", 1),
+        (raw_dir, "2019-first", "graduates", 1),
+        (raw_dir, "2019-first", "dropouts-medical", 1),
+        (raw_dir, "2019-first", "dropouts-non-medical", 1),
+        (raw_dir, "2020-operators", "operators", 1)
     ]
-    helper(a, b, c, d, e::Int) = responses(joinpath(a, b), c, d; measurement=e)
+    helper(a, b, c, d::Int) = responses(joinpath(a, b), nato_name, c; measurement=d)
     vcat([helper(t...) for t in parameters]...)
 end
 
