@@ -37,6 +37,7 @@ function get_scores(df::DataFrame, items::Items; average=true)::Array
 end
 
 include("commitment.jl")
+include("demographics.jl")
 include("personality.jl")
 include("intelligence.jl")
 include("toughness.jl")
@@ -97,7 +98,9 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     end
 
     # When updating this part, also update `join_dropout_questionnaires` below.
-    if nato_name == "delta"
+    if nato_name == "bravo"
+        joined = unify_demographics(joined)
+    elseif nato_name == "delta"
         joined = Commitment.delta2scores(joined)
     elseif nato_name == "foxtrot"
         joined = Intelligence.foxtrot2scores(joined)
@@ -148,7 +151,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
     responses_data = responses(data_dir, nato_name) 
 
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
-    dropouts_data = dropouts(Codex.dirparent(data_dir))
+    dropouts_data = dropouts(dirname(data_dir))
     
     if group == "operators"
         df = responses_data
