@@ -68,7 +68,7 @@ has_duplicates(A::AbstractArray) = length(A) != length(unique(A))
 Returns root directory of the current Module.
 This is usually also the root of the Git repository.
 """
-project_root()::String = dirparent(pathof(Codex), 2)
+project_root()::String = pkgdir(Codex)
 
 rmextension(s::String)::String = s[1:findlast('.', s)-1]
 
