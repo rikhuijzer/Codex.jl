@@ -91,15 +91,19 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         # If people_data is free from missings, then matchmissing equal should not introduce 
         # missings, I think.
         dropmissing!(people_data)
-	joined = nothing
-	try
-            joined = innerjoin(people_data, responses_data, on=:backend_id, matchmissing=:equal)
-	catch # DataFrames < 0.22
-	    joined = innerjoin(people_data, responses_data, on=:backend_id)
-	end
+    joined = nothing
+    try
+        joined = innerjoin(people_data, responses_data, on=:backend_id, matchmissing=:equal)
+    catch # DataFrames < 0.22
+        joined = innerjoin(people_data, responses_data, on=:backend_id)
+    end
         select!(joined, Not(:backend_id))
     else 
         joined = responses_data
+    end
+
+    if "locale" in names(joined)
+        select!(joined, Not(:locale))
     end
 
     # When updating this part, also update `join_dropout_questionnaires` below.
@@ -193,7 +197,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
     end
 end
 
-function first_measurement(raw_dir::String, nato_name::String) 
+function first_measurement(raw_dir::String, nato_name::String)
     parameters = [
         (raw_dir, "2018-first", "graduates", 1),
         (raw_dir, "2018-first", "dropouts-medical", 1),
@@ -201,10 +205,14 @@ function first_measurement(raw_dir::String, nato_name::String)
         (raw_dir, "2019-first", "graduates", 1),
         (raw_dir, "2019-first", "dropouts-medical", 1),
         (raw_dir, "2019-first", "dropouts-non-medical", 1),
-        (raw_dir, "2020-operators", "operators", 1)
+        (raw_dir, "2020-operators", "operators", 1),
+        (raw_dir, "2020-first", "graduates", 1),
+#        (raw_dir, "2020-first", "dropouts-medical", 1),
+#        (raw_dir, "2020-first", "dropouts-non-medical", 1),
     ]
-    helper(a, b, c, d::Int) = responses(joinpath(a, b), nato_name, c; measurement=d)
-    vcat([helper(t...) for t in parameters]...)
+    helper(dir, cohort_dir, group, measurement::Int) =
+        responses(joinpath(dir, cohort_dir), nato_name, group; measurement)
+    vcat([helper(p...) for p in parameters]...)
 end
 
 """

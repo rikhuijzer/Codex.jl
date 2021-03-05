@@ -3,42 +3,42 @@ using DataFrames
 using Query
 
 export personality2scores
-    
+
 ans_mapping = Dict("HO" => 1, "O" => 2, "N" => 3, "E" => 4, "HE" => 5)
 reverse(ans::Number)::Number = 6 - ans
 reversed_questions = [
-		# Page 113
-    1, 61, 121, 181, 
-    36, 96, 156, 
-    11, 71, 
+    # Page 113
+    1, 61, 121, 181,
+    36, 96, 156,
+    11, 71,
     46, 106, 166,
     21, 81, 141, 231,
     56, 116, 176, 206, 236,
     # Page 114
-    32, 92, 
-    7, 67, 187, 
+    32, 92,
+    7, 67, 187,
     42, 102, 162, 222,
-    17, 77, 137, 
-    52, 112, 
+    17, 77, 137,
+    52, 112,
     # Page 115
     33, 93, 153, 183,
     8, 68, 128,
     43, 103, 163,
     18, 78, 138, 198, 228,
-    53, 113, 173, 
+    53, 113, 173,
     # Page 116
     4, 64, 124,
     39, 99, 159, 189, 219,
     14, 74, 134,
     49, 109, 169, 199, 229,
     24, 84, 144, 234,
-    59, 119, 
+    59, 119,
     # Page 117
     95, 155,
     10, 70, 130, 190, 220,
-    45, 105, 
-    20, 80, 140, 
-    55, 115, 205, 
+    45, 105,
+    20, 80, 140,
+    55, 115, 205,
     30, 90, 150,
 ]
 is_reversed(question::Number)::Bool = question in reversed_questions
@@ -53,13 +53,13 @@ ans2num(ans::Missing, question::String) = ans2num("N", question)
 ans2num(ans::String, question::Symbol) = ans2num(ans, string(question))
 
 function personality2digits(lima::DataFrame)::DataFrame
-	lima_digits = select(lima, [:id, :completed_at])
+    lima_digits = select(lima, [:id, :completed_at])
 
-	for question in names(lima)[3:end]
-			digits = map(ans -> ans2num(ans, question), lima[!, question])
-			lima_digits = hcat(lima_digits, DataFrame(question => digits))
-	end
-	return lima_digits
+    for question in names(lima)[3:end]
+        digits = map(ans -> ans2num(ans, question), lima[!, question])
+        lima_digits = hcat(lima_digits, DataFrame(question => digits))
+    end
+    return lima_digits
 end
 
 facets = Dict(
@@ -109,38 +109,38 @@ answer(lima::DataFrame, row::Number, question::Symbol) = lima[row, question]
 answer(lima::DataFrame, row::Number, question::Number) = answer(lima, row, Symbol("v" * string(question)))
 
 function score_everyone(lima_digits::DataFrame, facet::String) 
-	answers(row::Number) = map(question -> answer(lima_digits, row, question), facets[facet])
-	map(row -> sum(answers(row)), 1:nrow(lima_digits))
+    answers(row::Number) = map(question -> answer(lima_digits, row, question), facets[facet])
+    map(row -> sum(answers(row)), 1:nrow(lima_digits))
 end
 
 function personality2facets(lima_digits::DataFrame)::DataFrame
-	lima_facets = select(lima_digits, [:id, :completed_at])
+    lima_facets = select(lima_digits, [:id, :completed_at])
 
-	for facet in sort(collect(keys(facets)))
-			df = DataFrame(Symbol(facet) => score_everyone(lima_digits, facet))
-			lima_facets = hcat(lima_facets, df)
-	end
-	return lima_facets
+    for facet in sort(collect(keys(facets)))
+        df = DataFrame(Symbol(facet) => score_everyone(lima_digits, facet))
+        lima_facets = hcat(lima_facets, df)
+    end
+    return lima_facets
 end
 
 function personality2scores(lima::DataFrame)::DataFrame
     lima_digits = personality2digits(lima)
-	lima_facets = personality2facets(lima_digits)
-	lima_scores = copy(lima_facets)
+    lima_facets = personality2facets(lima_digits)
+    lima_scores = copy(lima_facets)
 
-	answers(row::Number, facet::String) = map(question -> answer(lima_digits, row, question), facets[facet])
-	score_everyone(facet::String) = map(row -> sum(answers(row, facet)), 1:nrow(lima_digits))
+    answers(row::Number, facet::String) = map(question -> answer(lima_digits, row, question), facets[facet])
+    score_everyone(facet::String) = map(row -> sum(answers(row, facet)), 1:nrow(lima_digits))
 
-	domains = Set(map(key -> string(key)[1], collect(keys(facets))))
-	get_facets(domain::Char)::Array{String,1} = filter(key -> string(key)[1] == domain, collect(keys(facets)))
-	
-	facet_scores(domain::Char) = map(score_everyone, get_facets(domain))
-	score_everyone(domain::Char) = sum(facet_scores(domain))
+    domains = Set(map(key -> string(key)[1], collect(keys(facets))))
+    get_facets(domain::Char)::Array{String,1} = filter(key -> string(key)[1] == domain, collect(keys(facets)))
 
-	for domain in sort(collect(domains))
+    facet_scores(domain::Char) = map(score_everyone, get_facets(domain))
+    score_everyone(domain::Char) = sum(facet_scores(domain))
+
+    for domain in sort(collect(domains))
         df = DataFrame(Symbol(domain) => score_everyone(domain))
         lima_scores = hcat(lima_scores, df)
-	end
+    end
 
-	return lima_scores
+    return lima_scores
 end
