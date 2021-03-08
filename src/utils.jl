@@ -77,6 +77,8 @@ rmextension(s::String)::String = s[1:findlast('.', s)-1]
 
 Map array `a` by using arrays `from` and `to`.
 Leaving all elements of `a` for which no match is found unchanged.
+
+!! Note-to-self. This is dumb function. Use joins instead.
 """
 function map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol)::Array
     if typeof(a) != typeof(df[!, from])
