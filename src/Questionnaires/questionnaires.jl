@@ -197,7 +197,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
     end
 end
 
-function first_measurement(raw_dir::String, nato_name::String)
+function first_measurement(raw_dir::AbstractString, nato_name::AbstractString)
     parameters = [
         (raw_dir, "2018-first", "graduates", 1),
         (raw_dir, "2018-first", "dropouts-medical", 1),
@@ -213,6 +213,27 @@ function first_measurement(raw_dir::String, nato_name::String)
     helper(dir, cohort_dir, group, measurement::Int) =
         responses(joinpath(dir, cohort_dir), nato_name, group; measurement)
     vcat([helper(p...) for p in parameters]...)
+end
+
+function second_measurement(raw_dir::AbstractString, nato_name::AbstractString)
+    parameters = [
+        (raw_dir, "2018-second", "graduates", 2),
+        (raw_dir, "2018-second", "dropouts-medical", 2),
+        (raw_dir, "2018-second", "dropouts-non-medical", 2),
+        (raw_dir, "2019-second", "graduates", 2),
+        (raw_dir, "2019-second", "dropouts-medical", 2),
+        (raw_dir, "2019-second", "dropouts-non-medical", 2),
+        (raw_dir, "2020-second", "graduates", 2),
+        (raw_dir, "2020-second", "dropouts-medical", 2),
+        (raw_dir, "2020-second", "dropouts-non-medical", 2),
+        (raw_dir, "2020-second", "graduates", 2),
+#        (raw_dir, "2020-first", "dropouts-medical", 1),
+#        (raw_dir, "2020-first", "dropouts-non-medical", 1),
+    ]
+    helper(dir, cohort_dir, group, measurement::Int) =
+        responses(joinpath(dir, cohort_dir), nato_name, group; measurement)
+    vcat([helper(p...) for p in parameters]...)
+
 end
 
 """
