@@ -75,20 +75,26 @@ rmextension(s::String)::String = s[1:findlast('.', s)-1]
 """
     map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol; missing=nothing)::Array
 
-Map array `a` by using arrays `from` and `to`.
-Leaving all elements of `a` for which no match is found unchanged.
+Return array `A` where all elements are mapped `from` `U` `to` `V`.
+Leaving all elements of `A` for which no match is found unchanged.
 
 !! Note-to-self. This is dumb function. Use joins instead.
 """
-function map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol)::Array
-    if typeof(a) != typeof(df[!, from])
-        @warn TypeError(:map_by_df, "trying to map `a` with `from`", typeof(a), typeof(df[!, from]))
+function map_by_df(A::AbstractArray, df::DataFrame, from::Symbol, to::Symbol)::Array
+    U = df[:, from]
+
+    if eltype(A) != eltype(U)
+        @warn TypeError(:map_by_df, "trying to map `A` with `from`", typeof(A), typeof(U))
     end
     function map_element(e)
-        filtered = filter(row -> row[from] == e, df)
-        nrow(filtered) == 1 ? first(filtered)[to] : e
+        if ismissing(e)
+            return missing
+        else
+            filtered = filter(row -> row[from] == e, df)
+            nrow(filtered) == 1 ? first(filtered)[to] : e
+        end
     end
-    map(map_element, a)
+    map(map_element, A)
 end
 
 today() = Dates.format(Dates.now(), DateFormat("yyyy-mm-dd"))
