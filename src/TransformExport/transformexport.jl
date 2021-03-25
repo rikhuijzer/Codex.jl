@@ -6,7 +6,7 @@ using DataFrames
 using DataFrames: ColumnIndex
 using Dates
 
-export 
+export
     read_csv,
     responses,
     simplify,
@@ -153,8 +153,10 @@ end
 Split the datetime column `datetime_col` into two columns, namely one for date and one for time.
 """
 function split_datetime(df::DataFrame, datetime_col::T)::DataFrame where {T<:ColumnIndex}
-    df = DataFrame(df) 
-    df.date = map(x -> first(split(x, " ")), df[!, datetime_col])
+    df = DataFrame(df)
+    dates = map(x -> first(split(x, " ")), df[!, datetime_col])
+    dates = Date.(dates, dateformat"dd-mm-yyyy")
+    df.date = dates
     df.time = map(x -> split(x, " ")[2], df[!, datetime_col])
     select!(df, Not(datetime_col))
     df

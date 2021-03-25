@@ -57,7 +57,7 @@ function order_with(df::DataFrame, orderings::Array{Ordering,1})::DataFrame
     df = DataFrame(df)
     for o in orderings
         if o.newlevels != nothing
-            df[!, o.col] = CategoricalArray(df[!, o.col])
+            df[!, o.col] = categorical(df[!, o.col])
             levels!(df[!, o.col], o.newlevels; allowmissing=true)
         end
     end

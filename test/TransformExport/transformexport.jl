@@ -46,5 +46,5 @@ export_dir = joinpath(data_dir, "2020-08")
     @test TransformExport.names2usernames(with_names, id_username)[!, :id] == ["jackson"]
 
     third = TransformExport.read_csv(joinpath(export_dir, "responses", "third.csv"))
-    @test Set(first(TransformExport.split_datetime(third, :completed_at))) == Set(["kim", "01-01-2020", "10:00:00", 2])
+    @test Set(first(TransformExport.split_datetime(third, :completed_at))) == Set(["kim", Date("2020-01-01"), "10:00:00", 2])
 end
