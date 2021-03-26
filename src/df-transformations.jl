@@ -1,7 +1,7 @@
 using CategoricalArrays
 using DataFrames: ColumnIndex
 
-export 
+export
     Ordering,
     add_missing,
     order_with
@@ -16,12 +16,14 @@ end
 
 Add rows to ensure that for all elements in `expected`, the same element exists in `actual`.
 """
-function add_missing(df::DataFrame, actual::T, expected::AbstractArray)::DataFrame where {T<:ColumnIndex}
+function add_missing(df::DataFrame, actual::C, expected::AbstractArray)::DataFrame where {C<:ColumnIndex}
     df = DataFrame(df)
     for e in expected
-        if !(e in df[!, actual]) 
+        if !(e in df[:, actual])
             allowmissing!(df)
+
             row = Tuple([[e]; repeat([missing], ncol(df) - 1)])
+            # If this shows 'Error adding value to column :id' and TypeError, then some participant couldn't be mapped probably.
             push!(df, row)
         end
     end
@@ -33,10 +35,10 @@ end
 
 Add rows to ensure that for all elements in `expected`, the same element exists in `actual` for each unique element of `by`.
 """
-function add_missing(df::DataFrame, actual::T, expected::AbstractArray, by::T)::DataFrame where {T<:ColumnIndex}
+function add_missing(df::DataFrame, actual::C, expected::AbstractArray, by::C)::DataFrame where {C<:ColumnIndex}
     df = DataFrame(df)
     function process_by(u)::DataFrame
-        subset = filter(by => v -> v == u, df)
+        subset = filter(by => ==(u), df)
         subset = select!(subset, Not(by))
         subset = add_missing(subset, actual, expected)
         subset[!, by] = repeat([u], nrow(subset))
