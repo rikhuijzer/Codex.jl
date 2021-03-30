@@ -223,10 +223,7 @@ function second_measurement(raw_dir::AbstractString, nato_name::AbstractString)
         (raw_dir, "2019-second", "graduates", 2),
         (raw_dir, "2019-second", "dropouts-medical", 2),
         (raw_dir, "2019-second", "dropouts-non-medical", 2),
-        (raw_dir, "2020-second", "graduates", 2),
-        (raw_dir, "2020-second", "dropouts-medical", 2),
-        (raw_dir, "2020-second", "dropouts-non-medical", 2),
-        (raw_dir, "2020-second", "graduates", 2),
+
 #        (raw_dir, "2020-first", "dropouts-medical", 1),
 #        (raw_dir, "2020-first", "dropouts-non-medical", 1),
     ]
