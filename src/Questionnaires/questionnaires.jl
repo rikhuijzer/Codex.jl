@@ -32,7 +32,7 @@ function get_scores(df::DataFrame, items::Items; average=true)::Array
 
     totals = normal_scores .+ reversed_scores
     n_items = length(items.normal) + length(items.reversed)
-    
+
     return average ? totals ./ n_items : totals
 end
 
@@ -91,14 +91,14 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         # If people_data is free from missings, then matchmissing equal should not introduce 
         # missings, I think.
         dropmissing!(people_data)
-    joined = nothing
-    try
-        joined = innerjoin(people_data, responses_data, on=:backend_id, matchmissing=:equal)
-    catch # DataFrames < 0.22
-        joined = innerjoin(people_data, responses_data, on=:backend_id)
-    end
+        joined = nothing
+        try
+            joined = innerjoin(people_data, responses_data, on=:backend_id, matchmissing=:equal)
+        catch # DataFrames < 0.22
+            joined = innerjoin(people_data, responses_data, on=:backend_id)
+        end
         select!(joined, Not(:backend_id))
-    else 
+    else
         joined = responses_data
     end
 
@@ -227,6 +227,9 @@ function second_measurement(raw_dir::AbstractString, nato_name::AbstractString)
 #        (raw_dir, "2020-first", "dropouts-medical", 1),
 #        (raw_dir, "2020-first", "dropouts-non-medical", 1),
     ]
+    if nato_name == "mike"
+        filter!(p -> p[2] != "2018-second", parameters)
+    end
     helper(dir, cohort_dir, group, measurement::Int) =
         responses(joinpath(dir, cohort_dir), nato_name, group; measurement)
     vcat([helper(p...) for p in parameters]...)
