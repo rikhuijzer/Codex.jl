@@ -207,8 +207,8 @@ function first_measurement(raw_dir::AbstractString, nato_name::AbstractString)
         (raw_dir, "2019-first", "dropouts-non-medical", 1),
         (raw_dir, "2020-operators", "operators", 1),
         (raw_dir, "2020-first", "graduates", 1),
-#        (raw_dir, "2020-first", "dropouts-medical", 1),
-#        (raw_dir, "2020-first", "dropouts-non-medical", 1),
+        (raw_dir, "2020-first", "dropouts-medical", 1),
+        (raw_dir, "2020-first", "dropouts-non-medical", 1),
     ]
     helper(dir, cohort_dir, group, measurement::Int) =
         responses(joinpath(dir, cohort_dir), nato_name, group; measurement)
