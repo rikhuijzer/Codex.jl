@@ -36,8 +36,9 @@ function get_scores(df::DataFrame, items::Items; average=true)::Array
     return average ? totals ./ n_items : totals
 end
 
-include("commitment.jl")
 include("demographics.jl")
+include("commitment.jl")
+include("self-efficacy.jl")
 include("personality.jl")
 include("intelligence.jl")
 include("toughness.jl")
@@ -88,7 +89,7 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         # Avoiding Query because precompilation takes ages (>1 minutes) for hundreds of columns.
         select!(people_data, :person_id => :backend_id, :first_name => :id)
         rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
-        # If people_data is free from missings, then matchmissing equal should not introduce 
+        # If people_data is free from missings, then matchmissing equal should not introduce
         # missings, I think.
         dropmissing!(people_data)
         joined = nothing
@@ -111,6 +112,8 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         joined = unify_demographics(joined)
     elseif nato_name == "delta"
         joined = Commitment.delta2scores(joined)
+    elseif nato_name == "echo"
+        joined = self_efficacy2scores(joined)
     elseif nato_name == "foxtrot"
         joined = Intelligence.foxtrot2scores(joined)
     elseif nato_name == "golf"
@@ -275,7 +278,7 @@ function join_dropout_questionnaires(raw_dir::String)::DataFrame
     df = Codex.Questionnaires.join_questionnaires(
         raw_dir,
         # Ignoring delta since only two operators participated in delta.
-        ["foxtrot", "golf", "india", "kilo", "lima", "mike"],
+        ["echo", "foxtrot", "golf", "india", "kilo", "lima", "mike"],
         ["graduates", "operators", "dropouts-non-medical"]
     )
     df[:, :binary_group] = [x == "graduates" || x == "operators" ? 1 : 0 for x in df[:, :group]]
