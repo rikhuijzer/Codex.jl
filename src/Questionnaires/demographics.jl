@@ -1,5 +1,27 @@
-function fix_age(x)::Int
-    value = tryparse(Int, string(x))
+"""
+    fix_age(x::AbstractString)::Int
+
+Return age after parsing `x`.
+
+```jldoctest
+julia> fix_age = Codex.Questionnaires.fix_age;
+
+julia> fix_age("27-jun-93")
+26
+
+julia> fix_age("1993")
+26
+
+julia> fix_age("23 jaar")
+23
+```
+"""
+function fix_age(x::AbstractString)::Int
+    x = string(x)
+    if endswith(x, "jaar")
+        x = x[1:end-4]
+    end
+    value = tryparse(Int, x)
     if !isnothing(value) && 18 < value && value < 65
         return value
     elseif !isnothing(value) && 65 < value
@@ -11,6 +33,7 @@ function fix_age(x)::Int
     end
 end
 
+fix_age(x::Int) = x
 
 """
     unify_demographics(df)
