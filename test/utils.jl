@@ -5,7 +5,6 @@ using Test
 
 @testset "Utils" begin
     A = ["1", 2, missing]
-    @test all(categorical2simple(categorical(A)) .=== A)
     @test dirparent("/a/b/c") == "/a/b"
     @test dirparent("/a/b/c/") == "/a/b"
     @test dirparent("/a/b/c", 2) == "/a"

@@ -4,7 +4,6 @@ using Dates
 export 
     Output,
     apply,
-    categorical2simple,
     dirparent,
     has_duplicates,
     map_by_df,
@@ -34,13 +33,6 @@ apply(fns, obj) = ∘(reverse(fns)...)(obj)
 apply(fns) = obj -> apply(fns, obj)
 
 apply(fn::Function, nt::NamedTuple)::NamedTuple = (; Dict([(t[1], string(t[2])) for t in zip(keys(nt), nt)])...)
-
-"""
-    categorical2simple(A::CategoricalArray)
-
-Returns simple Julia collection for the CategoricalArray `a`.
-"""
-categorical2simple(A) = map(x -> x === missing ? missing : get(x), A)
 
 """
     dirparent(path)::String
