@@ -143,3 +143,28 @@ end
 output(cmd::Cmd)::Output = output((out, err) -> pipeline(cmd, stdout=out, stderr=err))
 
 nt2dict(nt::NamedTuple)::Dict = Dict(zip(keys(nt), nt))
+
+function graded()
+    q = [:P1, :P2, :P3, :P4, :P5, :M1, :M2, :M3, :M4, :M5, :C1, :Penalty]
+    s = [
+        0.5, # P1 [0.5]
+        0.75, # P2 [0.75]
+        0.5, # P3 [0.5]
+        1, # P4 [1.5]
+        1, # P5 [1.0]
+        0.5, # M1 [0.5]
+        1, # M2 [1.5]
+        1, # M3 [1.0]
+        0.25, # M4 [0.25]
+        1.5, # M5 [1.5]
+        1, # C1 [1.0]
+        0, # Penalty [-0.5]
+    ]
+    max = [0.5, 0.75, 0.5, 1.5, 1.0, 0.5, 1.5, 1.0, 0.25, 1.5, 1.0, -0.5]
+
+    df = DataFrame(; q, s, max)
+    @show df
+    println()
+    @show sum(df.s)
+    nothing
+end

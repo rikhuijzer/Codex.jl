@@ -45,7 +45,6 @@ include("toughness.jl")
 include("optimism.jl")
 include("coping.jl")
 include("inspire.jl")
-include("plot.jl")
 
 dv_str(s) = DataValue{String}(s)
 dv_any(x) = DataValue{Any}(x)

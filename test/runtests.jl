@@ -5,7 +5,6 @@ using Test
     include("gitlab.jl")
     include("utils.jl")
     include("stats.jl")
-    include(joinpath("Backup", "backup.jl"))
     include(joinpath("TransformExport", "transformexport.jl"))
     include(joinpath("Questionnaires", "questionnaires.jl"))
 end
