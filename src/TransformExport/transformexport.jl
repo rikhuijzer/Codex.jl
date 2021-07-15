@@ -31,8 +31,8 @@ Return responses for an export folder such as "2020-08".
 function responses(dir::String)::Dict{String,DataFrame}
     dir = joinpath(dir, "responses")
     files = filter(file -> endswith(file, ".csv"), readdir(dir))
-    names = map(rmextension, files)
-    paths = map(file -> joinpath(dir, file), files)
+    names = Codex.rmextension.(files)
+    paths = joinpath.(dir, files)
     dfs = map(path -> read_csv(path, delim=';'), paths)
     Dict(zip(names, dfs))
 end
@@ -143,7 +143,7 @@ function process(in_dir, out_dir; fns=nothing)
 end
 
 function names2usernames(df, id_username)::DataFrame
-    df.id = map_by_df(df.id, id_username, :id, :username)
+    df.id = Codex.map_by_df(df.id, id_username, :id, :username)
     df
 end
 
