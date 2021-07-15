@@ -18,14 +18,13 @@ struct Project
     # Not using urlencoded NAMESPACE/PROJECT_NAME for simplicity.
     project_id::Int
 end
-project_url(p::Project) = 
-    "$(p.config.url)/api/v4/projects/$(p.project_id)"
+project_url(p::Project) = "$(p.config.url)/api/v4/projects/$(p.project_id)"
 
 struct Schedule
     project::Project
     schedule_id::Int
 end
-schedule_url(s::Schedule) = 
+schedule_url(s::Schedule) =
     "$(project_url(s.project))/pipeline_schedules/$(s.schedule_id)"
 
 auth_header(config::Config) = Dict("PRIVATE-TOKEN" => config.token)

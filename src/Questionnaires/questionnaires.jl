@@ -120,8 +120,10 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         select!(joined, Not(:locale))
     end
 
-    f = transformation_map[nato_name]
-    joined = f(joined)
+    if nato_name in keys(transformation_map)
+        f = transformation_map[nato_name]
+        joined = f(joined)
+    end
     return joined
 end
 
