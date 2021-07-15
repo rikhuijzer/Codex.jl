@@ -37,6 +37,7 @@ function get_scores(df::DataFrame, items::Items; average=true)::Array
 end
 
 include("demographics.jl")
+include("resilience.jl")
 include("commitment.jl")
 include("self-efficacy.jl")
 include("personality.jl")
@@ -69,6 +70,7 @@ end
 
 transformation_map = Dict{String,Function}(
     "bravo" => unify_demographics,
+    "charlie" => resilience2scores,
     "delta" => Commitment.delta2scores,
     "echo" => self_efficacy2scores,
     "foxtrot" => Intelligence.foxtrot2scores,
@@ -106,11 +108,7 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         # missings, I think.
         dropmissing!(people_data)
         joined = nothing
-        try
-            joined = innerjoin(people_data, responses_data, on=:backend_id, matchmissing=:equal)
-        catch # DataFrames < 0.22
-            joined = innerjoin(people_data, responses_data, on=:backend_id)
-        end
+        joined = innerjoin(people_data, responses_data, on=:backend_id, matchmissing=:equal)
         select!(joined, Not(:backend_id))
     else
         joined = responses_data
