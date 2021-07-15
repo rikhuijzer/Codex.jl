@@ -2,6 +2,7 @@ module GitLab
 
 import JSON2
 
+using Codex
 using HTTP
 using HTTP: Response
 

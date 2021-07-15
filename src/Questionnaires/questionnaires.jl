@@ -67,6 +67,19 @@ function get_hnd(path::AbstractString)::DataFrame
     df
 end
 
+transformation_map = Dict{String,Function}(
+    "bravo" => unify_demographics,
+    "delta" => Commitment.delta2scores,
+    "echo" => self_efficacy2scores,
+    "foxtrot" => Intelligence.foxtrot2scores,
+    "golf" => Intelligence.golf2scores,
+    "india" => Toughness.india2scores,
+    "julliet" => Coping.julliet2scores,
+    "kilo" => Optimism.kilo2scores,
+    "lima" => personality2scores,
+    "mike" => Inspire.mike2scores
+)
+
 """
     responses(data_dir::String, nato_name::String)::DataFrame
 
@@ -107,28 +120,8 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         select!(joined, Not(:locale))
     end
 
-    # When updating this part, also update `join_dropout_questionnaires` below.
-    if nato_name == "bravo"
-        joined = unify_demographics(joined)
-    elseif nato_name == "delta"
-        joined = Commitment.delta2scores(joined)
-    elseif nato_name == "echo"
-        joined = self_efficacy2scores(joined)
-    elseif nato_name == "foxtrot"
-        joined = Intelligence.foxtrot2scores(joined)
-    elseif nato_name == "golf"
-        joined = Intelligence.golf2scores(joined)
-    elseif nato_name == "india"
-        joined = Toughness.india2scores(joined)
-    elseif nato_name == "julliet"
-        joined = Coping.julliet2scores(joined)
-    elseif nato_name == "kilo"
-        joined = Optimism.kilo2scores(joined)
-    elseif nato_name == "lima"
-        joined = personality2scores(joined)
-    elseif nato_name == "mike"
-        joined = Inspire.mike2scores(joined)
-    end
+    f = transformation_map[nato_name]
+    joined = f(joined)
     return joined
 end
 
@@ -164,7 +157,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
 
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
     dropouts_data = dropouts(dirname(data_dir))
-    
+
     if group == "operators"
         df = responses_data
         df[:, :group] = repeat(["operators"], nrow(df))
@@ -274,10 +267,12 @@ end
 Combine information from multiple questionnaires to allow model fitting.
 """
 function join_dropout_questionnaires(raw_dir::String)::DataFrame
+    questionnaires = sort(collect(keys(transformation_map)))
+    # Ignoring delta since only two operators participated in it.
+    questionnaires = filter(!in(["bravo", "delta"]), questionnaires)
     df = Codex.Questionnaires.join_questionnaires(
         raw_dir,
-        # Ignoring delta since only two operators participated in delta.
-        ["echo", "foxtrot", "golf", "india", "kilo", "lima", "mike"],
+        questionnaires,
         ["graduates", "operators", "dropouts-non-medical"]
     )
     df[:, :binary_group] = [x == "graduates" || x == "operators" ? 1 : 0 for x in df[:, :group]]
