@@ -53,17 +53,18 @@ dv_any(x) = DataValue{Any}(x)
     get_hnd(path::AbstractString)::DataFrame
 
 Get HowNutsAreTheDutch data and select big five, age and more.
+Should return 4984 results.
 """
 function get_hnd(path::AbstractString)::DataFrame
-	CSV.File(path, delim=';') |> 
-		@query(i, begin
-			# Assumes that all neo scores are missing if neo_neurot is 999.
-			@where i.neo_neurot != 999
-			@select {i.id, i.age, education=i.start_educ, group="civilians",
-                N=i.neo_neurot,
-				E=i.neo_extraversion, O=i.neo_openness,
-				A=i.neo_agreeable, C=i.neo_conscient}
-		end) |> DataFrame 
+    path = string(path)::String
+    df = CSV.read(path, DataFrame)
+    # Assumes that all neo scores are missing if neo_neurot is 999.
+    filter!(:neo_neurot => !=(999), df)
+    df[!, :group] .= "civilians"
+    domains = (:neo_neurot => :N, :neo_extraversion => :E, :neo_openness => :O,
+        :neo_agreeable => :A, :neo_conscient => :C)
+    select!(df, :id, :age, :start_educ => :education, domains...)
+    df
 end
 
 """
@@ -188,7 +189,6 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
             throw(AssertionError("Measurement has to be specified for the 2018 data"))
         end
         threshold = Date("2019-01-01")
-        # Not using a query since it cannot handle `{ i... }` for some reason.
         function filter_date(x)::Bool
             date = Date(first(split(x, ' ')), DateFormat("dd-mm-yyyy"))
             measurement == 1 ? date < threshold : threshold < date

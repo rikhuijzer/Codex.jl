@@ -1,7 +1,5 @@
 module Codex
 
-import JSON2
-
 using Codex
 using DataFrames
 using Dates

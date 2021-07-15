@@ -1,11 +1,11 @@
 module GitLab
 
+import JSON2
+
 using HTTP
 using HTTP: Response
 
-export
-    enforce_schedules,
-    enforce_variables
+export enforce_schedules, enforce_variables
 
 struct Config
     token::AbstractString
@@ -32,7 +32,7 @@ auth_header(p::Project) = auth_header(p.config)
 auth_header(s::Schedule) = auth_header(s.project)
 
 # All values are coverted to string to avoid errors when using `active = false`.
-form(param::NamedTuple) = HTTP.Form(nt2dict(apply(string, param)))
+form(param::NamedTuple) = HTTP.Form(nt2dict(Codex.apply(string, param)))
 json(r::Response) = JSON2.read(String(r.body))
 
 """
