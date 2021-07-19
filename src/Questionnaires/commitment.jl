@@ -6,7 +6,7 @@ using Query
 
 export delta2scores
 
-reverse(ans::Number) = 6 - ans
+reverse(ans::Number) = 8 - ans
 
 """
     is_2018(df)::Bool
@@ -27,7 +27,12 @@ function is_reversed(question::Int, year::Int)::Bool
     year == 2018 ? question in [1, 2, 4] : question in [2, 3, 5]
 end
 
-function ans2num(ans, question::Int, year::Int)::Number
+"""
+    ans2num(ans, question::Int, year::Int)
+
+Note that the scale was from 1 to 5 in 2018 and 1 to 7 in later years.
+"""
+function ans2num(ans, question::Int, year::Int)
     ans = year == 2018 ?
         Codex.rescale(ans_2018_mapping[ans], 1, 5, 1, 7) :
         (typeof(ans) != Int ? get(ans, Int) : ans)
