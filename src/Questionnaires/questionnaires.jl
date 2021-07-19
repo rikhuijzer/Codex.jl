@@ -5,7 +5,6 @@ using CSV
 using DataFrames
 using DataValues
 using Dates
-using Query
 
 struct Items
     normal::Array{Int,1}
@@ -101,7 +100,6 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     people_data = Codex.TransformExport.read_csv(people_file, delim=';')
 
     if nato_name != "mike" || !contains(data_dir, "2018")
-        # Avoiding Query because precompilation takes ages (>1 minutes) for hundreds of columns.
         select!(people_data, :person_id => :backend_id, :first_name => :id)
         rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
         # If people_data is free from missings, then matchmissing equal should not introduce
@@ -125,6 +123,8 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     return joined
 end
 
+remove_auth_prefix(s) = ismissing(s) ? missing : s[7:end]
+
 """
     replace_usernames(df::DataFrame, id_col::Symbol, id_username::DataFrame)
 
@@ -137,7 +137,6 @@ function replace_usernames(df::DataFrame, id_col::Symbol, id_username::DataFrame
     makeunique = true
     df = leftjoin(df, id_username; on, matchmissing, makeunique)
     new_col = Symbol("$(id_col)_1")
-    remove_auth_prefix(s) = ismissing(s) ? missing : s[7:end]
     df[!, new_col] = remove_auth_prefix.(df[!, new_col])
     df[!, :id] = [ismissing(new_id) ? id : new_id for (id, new_id) in zip(df[!, :id], df[!, new_col])]
     select!(df, Not(new_col))
@@ -160,35 +159,69 @@ function dropouts(raw_dir::String)
     replace_usernames(dropouts, :id, id_username)
 end
 
+function clean_graduates_dropouts(responses::DataFrame, dropouts::DataFrame, group, cohort)
+    @assert group != "operators"
+
+    df = transform(responses, :id => ByRow(remove_auth_prefix) => :id)
+    df = leftjoin(df, dropouts; on=:id)
+
+    function filter_group(dropout::Int64, dropout_reason::Union{Missing,String})
+        dropout = Bool(dropout)
+        if group == "graduates"
+            !dropout
+        else
+            medical_reason_match = group == "dropouts-medical" ?
+                dropout_reason == "B" :
+                dropout_reason != "B"
+            dropout && medical_reason_match
+        end
+    end
+    filter_group(dropout::Missing, dropout_reason) = false
+
+    df = subset!(df, [:dropout, :dropout_reason] => ByRow(filter_group))
+    df[!, :group] .= group
+    df = select!(df, :group, :)
+end
+
 """
     responses(data_dir::String, nato_name::String, group::String; measurement=999)::DataFrame
 
 Responses for group `group` and measurement `measurement`, where `group` is one of `graduates`, `operators`, `dropouts-medical` or `dropouts-non-medical`.
 `measurement` is only used to split the 2018 data, for the later datasets it is ignored.
+
+## Example in 2021-07:
+
+```
+julia> dir = joinpath(ysf_raw, "2020-first");
+
+julia> df = Codex.Questionnaires.responses(dir, "kilo", "dropouts");
+
+julia> nrow(df)
+25
+
+julia> select(first(df, 5), Not([:id, :completed_at]))
+5×3 DataFrame
+ Row │ group     optimism  pessimism
+     │ String    Int64     Int64
+─────┼───────────────────────────────
+   1 │ dropouts        10         10
+   2 │ dropouts        13          6
+   3 │ dropouts        10          9
+   4 │ dropouts        12          6
+   5 │ dropouts        12          5
+```
 """
 function responses(data_dir::String, nato_name::String, group::String; measurement=999)
-    responses_data = responses(data_dir, nato_name) 
+    responses_data = responses(data_dir, nato_name)
 
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
     dropouts_data = dropouts(dirname(data_dir))
 
     if group == "operators"
         df = responses_data
-        df[:, :group] = repeat(["operators"], nrow(df))
+        df[:, :group] .= "operators"
     else # Graduates and dropouts.
-        # If this code takes too long (>5 seconds), then try to reduce the number of columns.
-        df = @from r in responses_data begin
-            @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
-            @where d.cohort == cohort
-            @where group == "graduates" ? 
-                d.dropout == 0 :
-                #  Must be dropouts, by `group == operators` conditional above.
-                (d.dropout == 1 && (group == "dropouts-medical" ?
-                    d.dropout_reason == "B" :
-                    d.dropout_reason != "B"))
-            @select { group = group, r... }
-            @collect DataFrame
-        end
+        df = clean_graduates_dropouts(responses_data, dropouts_data, group, cohort)
     end
 
     if cohort == 2018

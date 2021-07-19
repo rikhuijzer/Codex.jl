@@ -2,7 +2,6 @@ module Coping
 
 using Codex
 using DataFrames
-using Query
 
 export julliet2scores
 

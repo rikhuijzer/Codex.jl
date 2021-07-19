@@ -2,7 +2,6 @@ module Commitment
 
 using Codex
 using DataFrames
-using Query
 
 export delta2scores
 

@@ -38,7 +38,6 @@ self_reflection = Items(
 
 function mike2scores(df::DataFrame)
     new_df = DataFrame(df)
-    # Not using Query since precompilation would be slow on all these cols.
     if !("completed_at" in names(new_df))
         # Cleaning up the 2018 data.
         new_df[:, :completed_at] = repeat([""], nrow(new_df))

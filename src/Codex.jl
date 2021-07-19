@@ -1,9 +1,9 @@
 module Codex
 
-using Codex
-using DataFrames
-using Dates
-using Statistics
+using Reexport
+@reexport using DataFrames
+@reexport using Dates
+@reexport using Statistics
 
 const PROJECT_ROOT = string(pkgdir(Codex))::String
 
