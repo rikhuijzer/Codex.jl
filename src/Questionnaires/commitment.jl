@@ -9,11 +9,11 @@ export delta2scores
 reverse(ans::Number) = 8 - ans
 
 """
-    is_2018(df)::Bool
+    is_2018(df::DataFrame)::Bool
 
 Returns whether `df` contains responses to the 2018 version of the delta questionnaire.
 """
-is_2018(df)::Bool = !("v7" in names(df))
+is_2018(df::DataFrame)::Bool = !("v7" in names(df))
 
 ans_2018_mapping = Dict(
     "Helemaal mee oneens" => 1,
