@@ -39,7 +39,7 @@ function kilo2scores(df::DataFrame)
         [:v3, :v7, :v9] => ByRow(score) => :pessimism
     ]
     select!(df, cols...)
-    # disallowmissing!(df)
+    disallowmissing!(df)
 end
 
 end # module
