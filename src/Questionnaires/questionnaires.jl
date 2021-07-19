@@ -126,24 +126,38 @@ function responses(data_dir::String, nato_name::String)::DataFrame
 end
 
 """
-    dropouts(raw_dir::String)::DataFrame
+    replace_usernames(df::DataFrame, id_col::Symbol, id_username::DataFrame)
+
+For every username in `df[!, id_col]`, replace the name by the long identifier.
+The long identifier is necessary, because usernames where not anonymized in 2018.
+"""
+function replace_usernames(df::DataFrame, id_col::Symbol, id_username::DataFrame)
+    matchmissing = :notequal
+    on = id_col => :username
+    makeunique = true
+    df = leftjoin(df, id_username; on, matchmissing, makeunique)
+    new_col = Symbol("$(id_col)_1")
+    remove_auth_prefix(s) = ismissing(s) ? missing : s[7:end]
+    df[!, new_col] = remove_auth_prefix.(df[!, new_col])
+    df[!, :id] = [ismissing(new_id) ? id : new_id for (id, new_id) in zip(df[!, :id], df[!, new_col])]
+    select!(df, Not(new_col))
+    df
+end
+
+"""
+    dropouts(raw_dir::String)
 
 Returns dropout data where all IDs are in the long identifier format.
+On 2021-07-19, returned a 197x7 dataset.
 """
 function dropouts(raw_dir::String)
     dropouts_file = joinpath(raw_dir, "dropouts.csv")
-    dropouts_data = Codex.TransformExport.read_csv(dropouts_file; delim=';')
+    dropouts = Codex.TransformExport.read_csv(dropouts_file; delim=';')
 
     id_username_file = joinpath(raw_dir, "id-username.csv")
-    id_username_data = Codex.TransformExport.read_csv(id_username_file; delim=',')
+    id_username = Codex.TransformExport.read_csv(id_username_file; delim=',')
 
-    @from d in dropouts_data begin
-        @left_outer_join i in id_username_data on dv_str(d.id) equals i.username
-        @let fixed_id = get(i.id, String) == String ? d.id : string(get(i.id, String))[7:end]
-        @select { id = fixed_id, d.cohort, d.dropout, d.dropout_date, 
-            d.dropout_reason, d.dropout_code, d.note }
-        @collect DataFrame
-    end
+    replace_usernames(dropouts, :id, id_username)
 end
 
 """
