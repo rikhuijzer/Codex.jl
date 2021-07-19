@@ -176,7 +176,7 @@ function clean_graduates_dropouts(responses::DataFrame, dropouts::DataFrame, gro
 
     df = subset!(df, [:dropout, :dropout_reason] => ByRow(filter_group))
     df[!, :group] .= group
-    df = select!(df, :group, :)
+    df = select!(df, :group, names(responses)...)
 end
 
 """

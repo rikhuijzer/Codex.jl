@@ -28,13 +28,11 @@ end
 Return the score for questionnaire charlie.
 """
 function resilience2scores(df::DataFrame)
-    df = DataFrame(df)
-    dropmissing!(df)
+    df = dropmissing(df)
     nq = 6
     T = ["v$i" => x -> charlie2int.(i, x) for i in 1:nq]
     transform!(df, :, T...; renamecols=false)
     cols = ["v$i" for i in 1:nq]
     transform!(df, :, cols => ByRow(+) => :score)
-    select!(df, Not(cols))
-    df
+    select!(df, :id, :completed_at, :score)
 end
