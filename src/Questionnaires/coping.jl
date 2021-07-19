@@ -30,11 +30,14 @@ For more information, see the e-mail with the subject `Julliet`.
 This file is not tested in-depth, because the procedure is the same as delta.
 """
 function julliet2scores(df::DataFrame)
-    transform!(df, [:v1, :v5, :v8, :v11, :v14] => ByRow(score) => :problem_focused)
-    transform!(df, [:v3, :v7, :v10, :v13, :v4] => ByRow(score) => :emotion_focused)
-    transform!(df, [:v2, :v6, :v9, :v15, :v12] => ByRow(score) => :seeking_support)
-
-    result = select!(df, :id, :completed_at, :problem_focused, :emotion_focused, :seeking_support)
+    cols = [
+        :id,
+        :completed_at,
+        [:v1, :v5, :v8, :v11, :v14] => ByRow(score) => :problem_focused,
+        [:v3, :v7, :v10, :v13, :v4] => ByRow(score) => :emotion_focused,
+        [:v2, :v6, :v9, :v15, :v12] => ByRow(score) => :seeking_support
+    ]
+    select!(df, cols...)
     disallowmissing!(df)
 end
 
