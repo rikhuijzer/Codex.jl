@@ -3,7 +3,6 @@ module Questionnaires
 using Codex
 using CSV
 using DataFrames
-using DataValues
 using Dates
 
 struct Items
@@ -46,14 +45,10 @@ include("optimism.jl")
 include("coping.jl")
 include("inspire.jl")
 
-dv_str(s) = DataValue{String}(s)
-dv_any(x) = DataValue{Any}(x)
-
 """
     get_hnd(path::AbstractString)::DataFrame
 
 Get HowNutsAreTheDutch data and select big five, age and more.
-Should return 4984 results.
 """
 function get_hnd(path::AbstractString)::DataFrame
     path = string(path)::String
@@ -64,6 +59,7 @@ function get_hnd(path::AbstractString)::DataFrame
     domains = (:neo_neurot => :N, :neo_extraversion => :E, :neo_openness => :O,
         :neo_agreeable => :A, :neo_conscient => :C)
     select!(df, :id, :age, :start_educ => :education, domains...)
+    @assert nrow(df) == 4_984
     df
 end
 
