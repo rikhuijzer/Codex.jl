@@ -5,7 +5,7 @@ import CSV
 using DataFrames
 using Test
 
-data_dir = joinpath(project_root(), "test", "data")
+data_dir = joinpath(Codex.PROJECT_ROOT, "test", "data")
 export_dir = joinpath(data_dir, "2020-08")
 
 @testset "TransformExport" begin

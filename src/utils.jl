@@ -1,18 +1,3 @@
-using DataFrames
-using Dates
-
-export 
-    Output,
-    apply,
-    dirparent,
-    has_duplicates,
-    map_by_df,
-    nt2dict,
-    nofalse,
-    project_root,
-    rmextension,
-    today
-
 struct Output
     exitcode::Int
     stdout::String
@@ -55,16 +40,6 @@ Returns whether `A` contains duplicates.
 has_duplicates(A::AbstractArray) = length(A) != length(unique(A))
 
 """
-    project_root()::String
-
-Returns root directory of the current Module.
-This is usually also the root of the Git repository.
-"""
-project_root()::String = pkgdir(Codex)
-
-rmextension(s::String)::String = s[1:findlast('.', s)-1]
-
-"""
     map_by_df(a::Array, df::DataFrame, from::Symbol, to::Symbol; missing=nothing)::Array
 
 Return array `A` where all elements are mapped `from` `U` `to` `V`.
@@ -89,7 +64,7 @@ function map_by_df(A::AbstractArray, df::DataFrame, from::Symbol, to::Symbol)::A
     map(map_element, A)
 end
 
-today() = Dates.format(Dates.now(), DateFormat("yyyy-mm-dd"))
+rmextension(path::AbstractString) = string(splitext(path)[1])::String
 
 """
     rescale(a, a_l, a_u, b_l, b_u)::Number

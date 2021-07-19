@@ -11,7 +11,7 @@ using Test
     @test has_duplicates([1]) == false
     @test has_duplicates([1,1]) == true
 
-    @test endswith(project_root(), "Codex.jl")
+    @test endswith(Codex.PROJECT_ROOT, "Codex.jl")
 
     fns = [
         df -> transform(df, :A => :A2),
@@ -21,7 +21,7 @@ using Test
     @test map(apply([x -> x + 1]), [1]) == [2]
 
     df = DataFrame(from = [1], to = ["one"])
-    @test map_by_df([1, 2], df, :from, :to) == ["one", 2]
+    @test Codex.map_by_df([1, 2], df, :from, :to) == ["one", 2]
 
     @test Codex.rescale(5, 1, 5, 0, 6) == 6
 

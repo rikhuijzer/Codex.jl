@@ -5,7 +5,6 @@ using CSV
 using DataFrames
 using DataValues
 using Dates
-using Query
 
 struct Items
     normal::Array{Int,1}
@@ -37,6 +36,7 @@ function get_scores(df::DataFrame, items::Items; average=true)::Array
 end
 
 include("demographics.jl")
+include("resilience.jl")
 include("commitment.jl")
 include("self-efficacy.jl")
 include("personality.jl")
@@ -53,18 +53,33 @@ dv_any(x) = DataValue{Any}(x)
     get_hnd(path::AbstractString)::DataFrame
 
 Get HowNutsAreTheDutch data and select big five, age and more.
+Should return 4984 results.
 """
 function get_hnd(path::AbstractString)::DataFrame
-	CSV.File(path, delim=';') |> 
-		@query(i, begin
-			# Assumes that all neo scores are missing if neo_neurot is 999.
-			@where i.neo_neurot != 999
-			@select {i.id, i.age, education=i.start_educ, group="civilians",
-                N=i.neo_neurot,
-				E=i.neo_extraversion, O=i.neo_openness,
-				A=i.neo_agreeable, C=i.neo_conscient}
-		end) |> DataFrame 
+    path = string(path)::String
+    df = CSV.read(path, DataFrame)
+    # Assumes that all neo scores are missing if neo_neurot is 999.
+    filter!(:neo_neurot => !=(999), df)
+    df[!, :group] .= "civilians"
+    domains = (:neo_neurot => :N, :neo_extraversion => :E, :neo_openness => :O,
+        :neo_agreeable => :A, :neo_conscient => :C)
+    select!(df, :id, :age, :start_educ => :education, domains...)
+    df
 end
+
+transformation_map = Dict{String,Function}(
+    "bravo" => unify_demographics,
+    "charlie" => resilience2scores,
+    "delta" => Commitment.delta2scores,
+    "echo" => self_efficacy2scores,
+    "foxtrot" => Intelligence.foxtrot2scores,
+    "golf" => Intelligence.golf2scores,
+    "india" => Toughness.india2scores,
+    "julliet" => Coping.julliet2scores,
+    "kilo" => Optimism.kilo2scores,
+    "lima" => personality2scores,
+    "mike" => Inspire.mike2scores
+)
 
 """
     responses(data_dir::String, nato_name::String)::DataFrame
@@ -85,18 +100,13 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     people_data = Codex.TransformExport.read_csv(people_file, delim=';')
 
     if nato_name != "mike" || !contains(data_dir, "2018")
-        # Avoiding Query because precompilation takes ages (>1 minutes) for hundreds of columns.
         select!(people_data, :person_id => :backend_id, :first_name => :id)
         rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
         # If people_data is free from missings, then matchmissing equal should not introduce
         # missings, I think.
         dropmissing!(people_data)
         joined = nothing
-        try
-            joined = innerjoin(people_data, responses_data, on=:backend_id, matchmissing=:equal)
-        catch # DataFrames < 0.22
-            joined = innerjoin(people_data, responses_data, on=:backend_id)
-        end
+        joined = innerjoin(people_data, responses_data, on=:backend_id, matchmissing=:equal)
         select!(joined, Not(:backend_id))
     else
         joined = responses_data
@@ -106,50 +116,71 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         select!(joined, Not(:locale))
     end
 
-    # When updating this part, also update `join_dropout_questionnaires` below.
-    if nato_name == "bravo"
-        joined = unify_demographics(joined)
-    elseif nato_name == "delta"
-        joined = Commitment.delta2scores(joined)
-    elseif nato_name == "echo"
-        joined = self_efficacy2scores(joined)
-    elseif nato_name == "foxtrot"
-        joined = Intelligence.foxtrot2scores(joined)
-    elseif nato_name == "golf"
-        joined = Intelligence.golf2scores(joined)
-    elseif nato_name == "india"
-        joined = Toughness.india2scores(joined)
-    elseif nato_name == "julliet"
-        joined = Coping.julliet2scores(joined)
-    elseif nato_name == "kilo"
-        joined = Optimism.kilo2scores(joined)
-    elseif nato_name == "lima"
-        joined = personality2scores(joined)
-    elseif nato_name == "mike"
-        joined = Inspire.mike2scores(joined)
+    if nato_name in keys(transformation_map)
+        f = transformation_map[nato_name]
+        joined = f(joined)
     end
     return joined
 end
 
+remove_auth_prefix(s) = ismissing(s) ? missing : s[7:end]
+
 """
-    dropouts(raw_dir::String)::DataFrame
+    replace_usernames(df::DataFrame, id_col::Symbol, id_username::DataFrame)
+
+For every username in `df[!, id_col]`, replace the name by the long identifier.
+The long identifier is necessary, because usernames where not anonymized in 2018.
+"""
+function replace_usernames(df::DataFrame, id_col::Symbol, id_username::DataFrame)
+    matchmissing = :notequal
+    on = id_col => :username
+    makeunique = true
+    df = leftjoin(df, id_username; on, matchmissing, makeunique)
+    new_col = Symbol("$(id_col)_1")
+    df[!, new_col] = remove_auth_prefix.(df[!, new_col])
+    df[!, :id] = [ismissing(new_id) ? id : new_id for (id, new_id) in zip(df[!, :id], df[!, new_col])]
+    select!(df, Not(new_col))
+    df
+end
+
+"""
+    dropouts(raw_dir::String)
 
 Returns dropout data where all IDs are in the long identifier format.
+On 2021-07-19, returned a 197x7 dataset.
 """
 function dropouts(raw_dir::String)
     dropouts_file = joinpath(raw_dir, "dropouts.csv")
-    dropouts_data = Codex.TransformExport.read_csv(dropouts_file; delim=';')
+    dropouts = Codex.TransformExport.read_csv(dropouts_file; delim=';')
 
     id_username_file = joinpath(raw_dir, "id-username.csv")
-    id_username_data = Codex.TransformExport.read_csv(id_username_file; delim=',')
+    id_username = Codex.TransformExport.read_csv(id_username_file; delim=',')
 
-    @from d in dropouts_data begin
-        @left_outer_join i in id_username_data on dv_str(d.id) equals i.username
-        @let fixed_id = get(i.id, String) == String ? d.id : string(get(i.id, String))[7:end]
-        @select { id = fixed_id, d.cohort, d.dropout, d.dropout_date, 
-            d.dropout_reason, d.dropout_code, d.note }
-        @collect DataFrame
+    replace_usernames(dropouts, :id, id_username)
+end
+
+function clean_graduates_dropouts(responses::DataFrame, dropouts::DataFrame, group, cohort)
+    @assert group != "operators"
+
+    df = transform(responses, :id => ByRow(remove_auth_prefix) => :id)
+    df = leftjoin(df, dropouts; on=:id)
+
+    function filter_group(dropout::Int64, dropout_reason::Union{Missing,String})
+        dropout = Bool(dropout)
+        if group == "graduates"
+            !dropout
+        else
+            medical_reason_match = group == "dropouts-medical" ?
+                dropout_reason == "B" :
+                dropout_reason != "B"
+            dropout && medical_reason_match
+        end
     end
+    filter_group(dropout::Missing, dropout_reason) = false
+
+    df = subset!(df, [:dropout, :dropout_reason] => ByRow(filter_group))
+    df[!, :group] .= group
+    df = select!(df, :group, :)
 end
 
 """
@@ -157,30 +188,40 @@ end
 
 Responses for group `group` and measurement `measurement`, where `group` is one of `graduates`, `operators`, `dropouts-medical` or `dropouts-non-medical`.
 `measurement` is only used to split the 2018 data, for the later datasets it is ignored.
+
+## Example in 2021-07:
+
+```
+julia> dir = joinpath(ysf_raw, "2020-first");
+
+julia> df = Codex.Questionnaires.responses(dir, "kilo", "dropouts");
+
+julia> nrow(df)
+25
+
+julia> select(first(df, 5), Not([:id, :completed_at]))
+5×3 DataFrame
+ Row │ group     optimism  pessimism
+     │ String    Int64     Int64
+─────┼───────────────────────────────
+   1 │ dropouts        10         10
+   2 │ dropouts        13          6
+   3 │ dropouts        10          9
+   4 │ dropouts        12          6
+   5 │ dropouts        12          5
+```
 """
 function responses(data_dir::String, nato_name::String, group::String; measurement=999)
-    responses_data = responses(data_dir, nato_name) 
+    responses_data = responses(data_dir, nato_name)
 
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
     dropouts_data = dropouts(dirname(data_dir))
-    
+
     if group == "operators"
         df = responses_data
-        df[:, :group] = repeat(["operators"], nrow(df))
+        df[:, :group] .= "operators"
     else # Graduates and dropouts.
-        # If this code takes too long (>5 seconds), then try to reduce the number of columns.
-        df = @from r in responses_data begin
-            @left_outer_join d in dropouts_data on r.id[7:end] equals d.id
-            @where d.cohort == cohort
-            @where group == "graduates" ? 
-                d.dropout == 0 :
-                #  Must be dropouts, by `group == operators` conditional above.
-                (d.dropout == 1 && (group == "dropouts-medical" ?
-                    d.dropout_reason == "B" :
-                    d.dropout_reason != "B"))
-            @select { group = group, r... }
-            @collect DataFrame
-        end
+        df = clean_graduates_dropouts(responses_data, dropouts_data, group, cohort)
     end
 
     if cohort == 2018
@@ -188,7 +229,6 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
             throw(AssertionError("Measurement has to be specified for the 2018 data"))
         end
         threshold = Date("2019-01-01")
-        # Not using a query since it cannot handle `{ i... }` for some reason.
         function filter_date(x)::Bool
             date = Date(first(split(x, ' ')), DateFormat("dd-mm-yyyy"))
             measurement == 1 ? date < threshold : threshold < date
@@ -274,10 +314,12 @@ end
 Combine information from multiple questionnaires to allow model fitting.
 """
 function join_dropout_questionnaires(raw_dir::String)::DataFrame
+    questionnaires = sort(collect(keys(transformation_map)))
+    # Ignoring delta since only two operators participated in it.
+    questionnaires = filter(!in(["bravo", "delta"]), questionnaires)
     df = Codex.Questionnaires.join_questionnaires(
         raw_dir,
-        # Ignoring delta since only two operators participated in delta.
-        ["echo", "foxtrot", "golf", "india", "kilo", "lima", "mike"],
+        questionnaires,
         ["graduates", "operators", "dropouts-non-medical"]
     )
     df[:, :binary_group] = [x == "graduates" || x == "operators" ? 1 : 0 for x in df[:, :group]]

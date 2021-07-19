@@ -3,8 +3,7 @@ module Inspire
 using Codex.Questionnaires: Items, get_scores
 using DataFrames
 
-export 
-    mike2scores
+export mike2scores
 
 # The scoring is determined by guessing by me.
 # I expect to have made a few mistakes, but overall the scoring was reasonably after knowing
@@ -21,7 +20,7 @@ emotional_stability = Items(
 )
 
 optimism = Items(
-    [61, 63, 69], 
+    [61, 63, 69],
     [58, 59, 67]
 )
 
@@ -39,7 +38,6 @@ self_reflection = Items(
 
 function mike2scores(df::DataFrame)
     new_df = DataFrame(df)
-    # Not using Query since precompilation would be slow on all these cols.
     if !("completed_at" in names(new_df))
         # Cleaning up the 2018 data.
         new_df[:, :completed_at] = repeat([""], nrow(new_df))
@@ -54,11 +52,11 @@ function mike2scores(df::DataFrame)
     new_df[:, :self_efficacy] = get_scores(new_df, self_efficacy)
     new_df[:, :self_reflection] = get_scores(new_df, self_reflection)
 
-    scored = select(new_df, :id, :completed_at, 
-        :coping_flexibility, :emotional_stability, :optimism, 
+    scored = select(new_df, :id, :completed_at,
+        :coping_flexibility, :emotional_stability, :optimism,
         :social_competence, :self_efficacy, :self_reflection
     )
-    # This could have been done above, but I mistakenly used `disallowmissing` 
+    # This could have been done above, but I mistakenly used `disallowmissing`
     # instead and went from there.
     dropmissing!(scored)
     scored

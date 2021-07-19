@@ -1,10 +1,7 @@
-using Statistics
-
-export
-    cohens_d
+export cohens_d
 
 """
-    cohens_d(μ1, μ2, s) 
+    cohens_d(μ1, μ2, s)
     cohens_d(n1, μ1, s1, n2, μ2, s2)
     cohens_d(A::Array, B::Array)
 
