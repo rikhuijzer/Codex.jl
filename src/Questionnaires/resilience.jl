@@ -1,10 +1,10 @@
-const charlie_mapping = Dict{String,Int}(
-        "Nooit" => 1,
-        "Bijna nooit" => 2,
-        "Soms" => 3,
-        "Vaak" => 4,
-        "Altijd" => 5
-    )
+charlie_mapping = Dict{String,Int}(
+    "Nooit" => 1,
+    "Bijna nooit" => 2,
+    "Soms" => 3,
+    "Vaak" => 4,
+    "Altijd" => 5
+)
 
 charlie2int(s::String)::Int = charlie_mapping[s]
 
