@@ -152,15 +152,18 @@ function dropouts(raw_dir::String)
     id_username_file = joinpath(raw_dir, "id-username.csv")
     id_username = Codex.TransformExport.read_csv(id_username_file; delim=',')
 
-    replace_usernames(dropouts, :id, id_username)
+    dropouts = replace_usernames(dropouts, :id, id_username)
     transform!(dropouts, :dropout => ByRow(Bool) => :dropout)
+    msg = "Unable to convert all usernames. Got:\n$dropouts"
+    @assert all([length(id) == 24 for id in dropouts.id]) msg
+    dropouts
 end
 
 function clean_graduates_dropouts(responses::DataFrame, dropouts::DataFrame, group, cohort)
     @assert group != "operators"
 
-    df = transform(responses, :id => ByRow(remove_auth_prefix) => :id)
-    df = leftjoin(df, dropouts; on=:id)
+    responses = transform(responses, :id => ByRow(remove_auth_prefix) => :id)
+    df = leftjoin(responses, dropouts; on=:id)
 
     function filter_group(dropout::Bool, dropout_reason::Union{Missing,String})
         if group == "graduates"
@@ -173,7 +176,9 @@ function clean_graduates_dropouts(responses::DataFrame, dropouts::DataFrame, gro
             dropout && medical_reason_match()
         end
     end
-    filter_group(dropout::Missing, dropout_reason) = false
+    function filter_group(dropout::Missing, dropout_reason)
+        false
+    end
 
     df = subset!(df, [:dropout, :dropout_reason] => ByRow(filter_group))
     df[!, :group] .= group
@@ -252,22 +257,25 @@ end
 
 function first_measurement(raw_dir::AbstractString, nato_name::AbstractString)
     parameters = [
-        (raw_dir, "2018-first", "graduates", 1),
-        (raw_dir, "2018-first", "dropouts-medical", 1),
-        (raw_dir, "2018-first", "dropouts-non-medical", 1),
-        (raw_dir, "2019-first", "graduates", 1),
-        (raw_dir, "2019-first", "dropouts-medical", 1),
-        (raw_dir, "2019-first", "dropouts-non-medical", 1),
-        (raw_dir, "2020-operators", "operators", 1),
-        (raw_dir, "2020-first", "graduates", 1),
-        (raw_dir, "2020-first", "dropouts-medical", 1),
-        (raw_dir, "2020-first", "dropouts-non-medical", 1),
-        (raw_dir, "2021-march-first", "graduates", 1),
-        (raw_dir, "2021-march-first", "dropouts-medical", 1),
-        (raw_dir, "2021-march-first", "dropouts-non-medical", 1),
+        (raw_dir, "2018-first", "graduates"),
+        (raw_dir, "2018-first", "dropouts-medical"),
+        (raw_dir, "2018-first", "dropouts-non-medical"),
+        (raw_dir, "2019-first", "graduates"),
+        (raw_dir, "2019-first", "dropouts-medical"),
+        (raw_dir, "2019-first", "dropouts-non-medical"),
+        (raw_dir, "2020-operators", "operators"),
+        (raw_dir, "2020-first", "graduates"),
+        (raw_dir, "2020-first", "dropouts-medical"),
+        (raw_dir, "2020-first", "dropouts-non-medical"),
+        (raw_dir, "2021-march-first", "graduates"),
+        (raw_dir, "2021-march-first", "dropouts-medical"),
+        (raw_dir, "2021-march-first", "dropouts-non-medical"),
     ]
-    helper(dir, cohort_dir, group, measurement::Int) =
-        responses(joinpath(dir, cohort_dir), nato_name, group; measurement)
+    measurement = 1
+    function helper(dir, cohort_dir, group)
+        data_dir = joinpath(dir, cohort_dir)
+        responses(data_dir, nato_name, group; measurement)
+    end
     vcat([helper(p...) for p in parameters]...)
 end
 
