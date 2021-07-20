@@ -153,6 +153,7 @@ function dropouts(raw_dir::String)
     id_username = Codex.TransformExport.read_csv(id_username_file; delim=',')
 
     replace_usernames(dropouts, :id, id_username)
+    transform!(dropouts, :dropout => ByRow(Bool) => :dropout)
 end
 
 function clean_graduates_dropouts(responses::DataFrame, dropouts::DataFrame, group, cohort)
@@ -161,15 +162,15 @@ function clean_graduates_dropouts(responses::DataFrame, dropouts::DataFrame, gro
     df = transform(responses, :id => ByRow(remove_auth_prefix) => :id)
     df = leftjoin(df, dropouts; on=:id)
 
-    function filter_group(dropout::Int64, dropout_reason::Union{Missing,String})
-        dropout = Bool(dropout)
+    function filter_group(dropout::Bool, dropout_reason::Union{Missing,String})
         if group == "graduates"
             !dropout
         else
-            medical_reason_match = group == "dropouts-medical" ?
-                dropout_reason == "B" :
-                dropout_reason != "B"
-            dropout && medical_reason_match
+            # Read as: if the query asks for "dropouts-medical", then get data with:
+            medical_reason_match() = group == "dropouts-medical" ?
+                dropout_reason == "B" || dropout_reason == "medisch" :
+                dropout_reason == "A" || dropout_reason == "C" || dropout_reason == "ontheffing"
+            dropout && medical_reason_match()
         end
     end
     filter_group(dropout::Missing, dropout_reason) = false
@@ -177,6 +178,19 @@ function clean_graduates_dropouts(responses::DataFrame, dropouts::DataFrame, gro
     df = subset!(df, [:dropout, :dropout_reason] => ByRow(filter_group))
     df[!, :group] .= group
     df = select!(df, :group, names(responses)...)
+end
+
+"""
+    validate_dropouts(df::DataFrame)
+
+Validate "dropouts.csv".
+"""
+function validate_dropouts(df::DataFrame)
+    disallowmissing!(df, :dropout)
+    valid(dropout_reason::Missing, dropout::Bool) = !dropout
+    valid(dropout_reason::String, dropout::Bool) = dropout
+    invs = subset(df, [:dropout_reason, :dropout] => ByRow(!valid))
+    @assert nrow(invs) == 0 "Found invalid rows:\n$invs"
 end
 
 """
@@ -212,6 +226,7 @@ function responses(data_dir::String, nato_name::String, group::String; measureme
 
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
     dropouts_data = dropouts(dirname(data_dir))
+    validate_dropouts(dropouts_data)
 
     if group == "operators"
         df = responses_data
@@ -247,6 +262,9 @@ function first_measurement(raw_dir::AbstractString, nato_name::AbstractString)
         (raw_dir, "2020-first", "graduates", 1),
         (raw_dir, "2020-first", "dropouts-medical", 1),
         (raw_dir, "2020-first", "dropouts-non-medical", 1),
+        (raw_dir, "2021-march-first", "graduates", 1),
+        (raw_dir, "2021-march-first", "dropouts-medical", 1),
+        (raw_dir, "2021-march-first", "dropouts-non-medical", 1),
     ]
     helper(dir, cohort_dir, group, measurement::Int) =
         responses(joinpath(dir, cohort_dir), nato_name, group; measurement)
