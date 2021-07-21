@@ -317,13 +317,13 @@ function join_questionnaires(raw_dir::String, questionnaires::Array{String,1}, g
         B = prepare_responses(b)
         # Group information is already provided by `A`.
         select!(B, Not(:group))
-        rename!(s -> s == "id" ? s : "$(b[1])_$s", B)
+        rename!(s -> s == "id" ? s : "$(b)_$s", B)
         innerjoin(A, B, on = :id)
     end
 
     function ysf_join(a::String, b::String)
         A = prepare_responses(a)
-        rename!(s -> s == "id" || s == "group" ? s : "$(a[1])_$s", A)
+        rename!(s -> s == "id" || s == "group" ? s : "$(a)_$s", A)
         ysf_join(A, b)
     end
 
@@ -331,11 +331,11 @@ function join_questionnaires(raw_dir::String, questionnaires::Array{String,1}, g
 end
 
 """
-    join_dropout_questionnaires(raw_dir::String)::DataFrame
+    join_vo_questionnaires(raw_dir::String)::DataFrame
 
 Combine information from multiple questionnaires to allow model fitting.
 """
-function join_dropout_questionnaires(raw_dir::String)::DataFrame
+function join_vo_questionnaires(raw_dir::String)::DataFrame
     questionnaires = sort(collect(keys(transformation_map)))
     # Ignoring delta since only two operators participated in it.
     questionnaires = filter(!in(["bravo", "delta"]), questionnaires)
