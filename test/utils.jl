@@ -36,5 +36,4 @@ using Test
 
     df = DataFrame(; group=[:A, :A, :B, :B], data=[1, 2, 3, 4])
     @test Codex.split_data(df, :group, :data, [:A, :B]) == (; A=[1, 2], B=[3, 4])
-    @test false
 end
