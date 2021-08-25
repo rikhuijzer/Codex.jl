@@ -33,4 +33,8 @@ using Test
     expected = Output(0, "lorem\n", "")
     @test Codex.output(f) == expected
     @test Codex.output(cmd) == expected
+
+    df = DataFrame(; group=[:A, :A, :B, :B], data=[1, 2, 3, 4])
+    @test Codex.split_data(df, :group, :data, [:A, :B]) == (; A=[1, 2], B=[3, 4])
+    @test false
 end

@@ -143,3 +143,14 @@ function graded()
     @show sum(df.s)
     nothing
 end
+
+"""
+    split_data(df::DataFrame, group_col, data_col, groups)::NamedTuple
+
+Return a NamedTuple containing data from `data_col` for each group in `groups`.
+"""
+function split_data(df::DataFrame, group_col, data_col, groups)::NamedTuple
+    typeassert.(groups, eltype(df[:, group_col]))
+    pairs = [Symbol(g) => filter(group_col => ==(g), df)[:, data_col] for g in groups]
+    return (; pairs...)
+end
