@@ -145,12 +145,12 @@ function graded()
 end
 
 """
-    split_data(df::DataFrame, group_col, data_col, groups)::NamedTuple
+    split_data(df::DataFrame, group_col, data_col, groups)::Tuple
 
 Return a NamedTuple containing data from `data_col` for each group in `groups`.
+The ordering of the data is the same as the ordering of `groups`.
 """
-function split_data(df::DataFrame, group_col, data_col, groups)::NamedTuple
+function split_data(df::DataFrame, group_col, data_col, groups)::Tuple
     typeassert.(groups, eltype(df[:, group_col]))
-    pairs = [Symbol(g) => filter(group_col => ==(g), df)[:, data_col] for g in groups]
-    return (; pairs...)
+    return Tuple(filter(group_col => ==(g), df)[:, data_col] for g in groups)
 end

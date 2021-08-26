@@ -35,5 +35,5 @@ using Test
     @test Codex.output(cmd) == expected
 
     df = DataFrame(; group=[:A, :A, :B, :B], data=[1, 2, 3, 4])
-    @test Codex.split_data(df, :group, :data, [:A, :B]) == (; A=[1, 2], B=[3, 4])
+    @test Codex.split_data(df, :group, :data, [:A, :B]) == ([1, 2], [3, 4])
 end
