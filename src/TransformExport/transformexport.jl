@@ -30,7 +30,7 @@ Return responses for an export folder such as "2020-08".
 """
 function responses(dir::String)::Dict{String,DataFrame}
     dir = joinpath(dir, "responses")
-    files = filter(file -> endswith(file, ".csv"), readdir(dir))
+    files = filter(endswith(".csv"), readdir(dir))
     names = Codex.rmextension.(files)
     paths = joinpath.(dir, files)
     dfs = map(path -> read_csv(path, delim=';'), paths)
