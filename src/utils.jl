@@ -96,7 +96,7 @@ function output(f::Function)::Output
     err = IOBuffer()
     take_str!(io) = String(take!(io))
     exitcode = 99
-    try 
+    try
         process = run(f(out, err))
         exitcode = process.exitcode
     catch
