@@ -31,10 +31,7 @@ using Codex.Questionnaires
     ids = Codex.Questionnaires.all_ids(responses_dir)
     @test ids == ["aaaa", "aaab", "aaac", "aaad"]
 
-    ids = Codex.Questionnaires.unfinished_ids(responses_dir; required=["first"])
-    # Only "aaaa" filled in `first`.
-    @test ids == ["aaab", "aaac", "aaad"]
-
-    ids = Codex.Questionnaires.unfinished_ids(responses_dir; required=["first", "foxtrot"])
-    @test ids == ["aaaa", "aaab", "aaac", "aaad"]
+    U = Codex.Questionnaires.unfinished_info(responses_dir; required=["first"])
+    @test getproperty.(U, :id) == ["aaab", "aaac", "aaad"]
+    @test getproperty.(U, :unfinished_questionnaires) == fill(["first"], 3)
 end

@@ -375,10 +375,10 @@ function unfinished_questionnaires(responses_dir::String, id::String)
 end
 
 """
-    all_ids(responses_dir)
+    all_ids(responses_dir)::Vector{String}
 
 """
-function all_ids(responses_dir)
+function all_ids(responses_dir)::Vector{String}
     csvs = csv_files(responses_dir)
     ids = map(csvs) do csv_file
         csv_path = joinpath(responses_dir, csv_file)
@@ -392,22 +392,27 @@ function all_ids(responses_dir)
     return sort(unique(Iterators.flatten(ids)))
 end
 
+struct Unfinished
+    id::String
+    unfinished_questionnaires::Vector{String}
+end
+
 """
-    unfinished_ids(responses_dir; required::Union{Nothing,Vector{String}}=missing)
+    unfinished_info(responses_dir; required::Union{Nothing,Vector{String}}=missing)::Vector{Unfinished}
 
 Return the ids for which not all questionnaires in `required` have been filled in.
 When `ismissing(required)`, take all the questionnaires in `responses_dir`.
 """
-function unfinished_ids(responses_dir; required::Union{Missing,Vector{String}}=missing)
+function unfinished_info(responses_dir; required::Union{Missing,Vector{String}}=missing)::Vector{Unfinished}
     if ismissing(required)
         required = first.(splitext.(csv_files(responses_dir)))
     end
     ids = all_ids(responses_dir)
-    ids = filter(ids) do id
-        unfinished = unfinished_questionnaires(responses_dir, id)
-        return any(in(required), unfinished)
-    end
-    return ids
+    U = [unfinished_questionnaires(responses_dir, id) for id in ids]
+    U = [filter(in(required), unfinished) for unfinished in U]
+    Z = collect(zip(ids, U))
+    Z = filter(t -> !isempty(last(t)), Z)
+    return [Unfinished(id, unfinished) for (id, unfinished) in Z]
 end
 
 end # module
