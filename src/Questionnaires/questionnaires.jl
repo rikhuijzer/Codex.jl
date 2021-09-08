@@ -392,13 +392,14 @@ function all_ids(responses_dir)
     return sort(unique(Iterators.flatten(ids)))
 end
 
-struct Unfinished
-    id::String
-    unfinished_questionnaires::Vector{String}
-end
+"""
+    unfinished_ids(responses_dir; required::Union{Nothing,Vector{String}}=missing)
 
-function unfinished_ids(responses_dir; required::Union{Nothing,Vector{String}}=nothing)
-    if isnothing(required)
+Return the ids for which not all questionnaires in `required` have been filled in.
+When `ismissing(required)`, take all the questionnaires in `responses_dir`.
+"""
+function unfinished_ids(responses_dir; required::Union{Missing,Vector{String}}=missing)
+    if ismissing(required)
         required = first.(splitext.(csv_files(responses_dir)))
     end
     ids = all_ids(responses_dir)
