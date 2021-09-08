@@ -402,6 +402,15 @@ end
 
 Return the ids for which not all questionnaires in `required` have been filled in.
 When `ismissing(required)`, take all the questionnaires in `responses_dir`.
+
+# Example
+```
+julia> responses_dir = joinpath(homedir(), "git", "ysf-raw", "2021-08", "responses");
+
+julia> required = ["alfa", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india", "julliet", "kilo", "lima", "mike"];
+
+julia> Codex.Questionnaires.unfinished_info(responses_dir; required)
+
 """
 function unfinished_info(responses_dir; required::Union{Missing,Vector{String}}=missing)::Vector{Unfinished}
     if ismissing(required)
