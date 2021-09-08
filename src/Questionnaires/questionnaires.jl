@@ -348,4 +348,65 @@ function join_vo_questionnaires(raw_dir::String)::DataFrame
     df
 end
 
+function csv_files(dir::String)
+    return filter(endswith(".csv"), readdir(dir))
+end
+
+"""
+    unfinished_questionnaires(responses_dir::String, id::String)
+
+Return questionnaire names in `responses_dir` for which `id` is not in `filled_out_by_id` column.
+This assumes that unfinished questionnaires have a `missing` in the `filled_out_by_id` column.
+"""
+function unfinished_questionnaires(responses_dir::String, id::String)
+    csvs = csv_files(responses_dir)
+    unfinished_csv_files = filter(csvs) do csv_file
+        csv_path = joinpath(responses_dir, csv_file)
+        df = CSV.read(csv_path, DataFrame)
+        if "filled_out_by_id" in names(df)
+            return !(id in skipmissing(df.filled_out_by_id))
+        else
+            # We can ignore the dataset since it is not a valid u-can-act output.
+            return true
+        end
+    end
+    unfinished = first.(splitext.(unfinished_csv_files))
+    return unfinished
+end
+
+"""
+    all_ids(responses_dir)
+
+"""
+function all_ids(responses_dir)
+    csvs = csv_files(responses_dir)
+    ids = map(csvs) do csv_file
+        csv_path = joinpath(responses_dir, csv_file)
+        df = CSV.read(csv_path, DataFrame)
+        if "filled_out_by_id" in names(df)
+            return collect(skipmissing(df.filled_out_by_id))
+        else
+            return String[]
+        end
+    end
+    return sort(unique(Iterators.flatten(ids)))
+end
+
+struct Unfinished
+    id::String
+    unfinished_questionnaires::Vector{String}
+end
+
+function unfinished_ids(responses_dir; required::Union{Nothing,Vector{String}}=nothing)
+    if isnothing(required)
+        required = first.(splitext.(csv_files(responses_dir)))
+    end
+    ids = all_ids(responses_dir)
+    ids = filter(ids) do id
+        unfinished = unfinished_questionnaires(responses_dir, id)
+        return any(in(required), unfinished)
+    end
+    return ids
+end
+
 end # module
