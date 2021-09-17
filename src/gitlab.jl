@@ -5,10 +5,11 @@ module GitLab
     compat issues in projects where GitLab isn't used.
     """
 
+import JSON2
+
 using Codex
 using HTTP
 using HTTP: Response
-using JSON2: read
 
 export enforce_schedules, enforce_variables
 
@@ -38,9 +39,7 @@ auth_header(s::Schedule) = auth_header(s.project)
 # All values are coverted to string to avoid errors when using `active = false`.
 form(param::NamedTuple) = HTTP.Form(nt2dict(Codex.apply(string, param)))
 
-function resp2json(r::Response)
-    return read(String(r.body))
-end
+resp2json(r::Response) = JSON2.read(String(r.body))
 
 """
     list_schedules(p::Project) -> Vector{NamedTuple}
