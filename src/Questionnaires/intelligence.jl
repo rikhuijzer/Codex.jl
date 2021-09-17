@@ -5,14 +5,15 @@ using DataFrames
 
 export foxtrot2scores, golf2scores
 
-function str2int(letter::String)::Int
+function str2int(letter::AbstractString)::Int
+    letter = string(letter)
     @assert(occursin(r"[A-Z]+", letter), "r\"[A-Z]+\" does not occur in $letter")
     ch = letter[1]
     i = Int(ch) - 64
 end
 
 n_equal(a::Array, b::Array)::Number = count(map(t -> t[1] == t[2], zip(a, b)))
-n_equal(a::Array, b::String)::Number = n_equal(a, map(i -> b, 1:length(a)))
+n_equal(a::Array, b::AbstractString)::Number = n_equal(a, map(i -> b, 1:length(a)))
 n_weetniet(preds::Array{Int64,1})::Int64 = length(filter(v -> v == "Weet ik niet", preds))
 get_answers(i::Number, df::DataFrame)::Vector = Vector(df[i, :][3:end])
 get_numbers(i::Number, df::DataFrame)::Array{Int64,1} = map(str2int, get_answers(i, df))

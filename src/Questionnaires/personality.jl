@@ -42,14 +42,18 @@ reversed_questions = [
 ]
 is_reversed(question::Number)::Bool = question in reversed_questions
 
-function ans2num(ans::String, question::Number)::Number
+function ans2num(ans::AbstractString, question::Number)::Number
+    ans = string(ans)
     ans = ans_mapping[ans]
     return is_reversed(question) ? reverse(ans) : ans
 end
 
-ans2num(ans::String, question::String) = ans2num(ans, parse(Int64, question[2:end]))
-ans2num(ans::Missing, question::String) = ans2num("N", question)
-ans2num(ans::String, question::Symbol) = ans2num(ans, string(question))
+function ans2num(ans::AbstractString, question::AbstractString)
+    return ans2num(string(ans), parse(Int64, question[2:end]))
+end
+
+ans2num(ans::Missing, question::AbstractString) = ans2num("N", question)
+ans2num(ans::AbstractString, question::Symbol) = ans2num(string(ans), string(question))
 
 function personality2digits(lima::DataFrame)::DataFrame
     lima_digits = select(lima, [:id, :completed_at])
@@ -107,7 +111,7 @@ domain(question::Number)::Char = facet(question)[1]
 answer(lima::DataFrame, row::Number, question::Symbol) = lima[row, question]
 answer(lima::DataFrame, row::Number, question::Number) = answer(lima, row, Symbol("v" * string(question)))
 
-function score_everyone(lima_digits::DataFrame, facet::String) 
+function score_everyone(lima_digits::DataFrame, facet::String)
     answers(row::Number) = map(question -> answer(lima_digits, row, question), facets[facet])
     map(row -> sum(answers(row)), 1:nrow(lima_digits))
 end
