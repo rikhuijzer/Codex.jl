@@ -1,6 +1,6 @@
 module GitLab
 
-import JSON2
+import JSON
 
 using Codex
 using HTTP
@@ -33,7 +33,7 @@ auth_header(s::Schedule) = auth_header(s.project)
 
 # All values are coverted to string to avoid errors when using `active = false`.
 form(param::NamedTuple) = HTTP.Form(nt2dict(Codex.apply(string, param)))
-json(r::Response) = JSON2.read(String(r.body))
+resp2json(r::Response) = JSON.parse(String(r.body))
 
 """
     list_schedules(p::Project) -> Vector{NamedTuple}
@@ -45,7 +45,8 @@ For details, see
 function list_schedules(p::Project)::Vector{NamedTuple}
     endpoint = "$(project_url(p))/pipeline_schedules"
     r = HTTP.request("GET", endpoint, auth_header(p))
-    list = json(r)
+    list = resp2json(r)
+    return list
 end
 n_schedules(p::Project) = length(GitLab.list_schedules(p))
 
@@ -58,11 +59,11 @@ For `param`, see
 function create_schedule(p::Project, param::NamedTuple)::NamedTuple
     endpoint = "$(project_url(p))/pipeline_schedules"
     r = HTTP.request("POST", endpoint, auth_header(p), form(param))
-    nt = json(r)
+    nt = resp2json(r)
     for key in keys(param)
         @assert param[key] == nt[key] "$key: $(param[key]) != $(nt[key])"
     end
-    nt
+    return nt
 end
 
 """
@@ -72,7 +73,7 @@ Deletes `schedule_id` for `project_id`.
 """
 function delete_schedule(s::Schedule)::NamedTuple
     r = HTTP.request("DELETE", schedule_url(s), auth_header(s))
-    json(r)
+    return resp2json(r)
 end
 
 """
