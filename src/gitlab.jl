@@ -1,10 +1,14 @@
 module GitLab
 
-import JSON
+@info """
+    Loading src/gitlab.jl via Requires.jl. JSON2 wasn't added to Project.toml to avoid
+    compat issues in projects where GitLab isn't used.
+    """
 
 using Codex
 using HTTP
 using HTTP: Response
+using JSON2: read
 
 export enforce_schedules, enforce_variables
 
@@ -34,10 +38,8 @@ auth_header(s::Schedule) = auth_header(s.project)
 # All values are coverted to string to avoid errors when using `active = false`.
 form(param::NamedTuple) = HTTP.Form(nt2dict(Codex.apply(string, param)))
 
-function resp2json(r::Response)::NamedTuple
-    dic = JSON.parse(String(r.body))
-    nt = NamedTuple([Symbol(a) => b for (a, b) in dic])
-    return nt
+function resp2json(r::Response)
+    return read(String(r.body))
 end
 
 """
@@ -92,7 +94,7 @@ are deleted via `enforce_schedules`.
 function create_schedule_variable(s::Schedule, param::NamedTuple)::NamedTuple
     endpoint = "$(schedule_url(s))/variables"
     r = HTTP.request("POST", endpoint, auth_header(s), form(param))
-    nt = json(r)
+    nt = resp2json(r)
     @assert param[:value] == nt[:value]
     nt
 end
@@ -143,19 +145,19 @@ end
 function list_variables(p::Project)::Vector
     endpoint = "$(project_url(p))/variables"
     r = HTTP.request("GET", endpoint, auth_header(p))
-    json(r)
+    resp2json(r)
 end
 
 function delete_variable(p::Project, key::String)::NamedTuple
     endpoint = "$(project_url(p))/variables/$key"
     r = HTTP.request("DELETE", endpoint, auth_header(p))
-    json(r)
+    resp2json(r)
 end
 
 function create_variable(p::Project, param::NamedTuple)::NamedTuple
     endpoint = "$(project_url(p))/variables"
     r = HTTP.request("POST", endpoint, auth_header(p), form(param))
-    json(r)
+    resp2json(r)
 end
 
 """
