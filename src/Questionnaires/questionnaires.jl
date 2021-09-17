@@ -348,4 +348,80 @@ function join_vo_questionnaires(raw_dir::String)::DataFrame
     df
 end
 
+function csv_files(dir::String)
+    return filter(endswith(".csv"), readdir(dir))
+end
+
+"""
+    unfinished_questionnaires(responses_dir::String, id::String)
+
+Return questionnaire names in `responses_dir` for which `id` is not in `filled_out_by_id` column.
+This assumes that unfinished questionnaires have a `missing` in the `filled_out_by_id` column.
+"""
+function unfinished_questionnaires(responses_dir::String, id::String)
+    csvs = csv_files(responses_dir)
+    unfinished_csv_files = filter(csvs) do csv_file
+        csv_path = joinpath(responses_dir, csv_file)
+        df = CSV.read(csv_path, DataFrame)
+        if "filled_out_by_id" in names(df)
+            return !(id in skipmissing(df.filled_out_by_id))
+        else
+            # We can ignore the dataset since it is not a valid u-can-act output.
+            return true
+        end
+    end
+    unfinished = first.(splitext.(unfinished_csv_files))
+    return unfinished
+end
+
+"""
+    all_ids(responses_dir)::Vector{String}
+
+"""
+function all_ids(responses_dir)::Vector{String}
+    csvs = csv_files(responses_dir)
+    ids = map(csvs) do csv_file
+        csv_path = joinpath(responses_dir, csv_file)
+        df = CSV.read(csv_path, DataFrame)
+        if "filled_out_by_id" in names(df)
+            return collect(skipmissing(df.filled_out_by_id))
+        else
+            return String[]
+        end
+    end
+    return sort(unique(Iterators.flatten(ids)))
+end
+
+struct Unfinished
+    id::String
+    unfinished_questionnaires::Vector{String}
+end
+
+"""
+    unfinished_info(responses_dir; required::Union{Nothing,Vector{String}}=missing)::Vector{Unfinished}
+
+Return the ids for which not all questionnaires in `required` have been filled in.
+When `ismissing(required)`, take all the questionnaires in `responses_dir`.
+
+# Example
+```
+julia> responses_dir = joinpath(homedir(), "git", "ysf-raw", "2021-08", "responses");
+
+julia> required = ["alfa", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india", "julliet", "kilo", "lima", "mike"];
+
+julia> Codex.Questionnaires.unfinished_info(responses_dir; required)
+
+"""
+function unfinished_info(responses_dir; required::Union{Missing,Vector{String}}=missing)::Vector{Unfinished}
+    if ismissing(required)
+        required = first.(splitext.(csv_files(responses_dir)))
+    end
+    ids = all_ids(responses_dir)
+    U = [unfinished_questionnaires(responses_dir, id) for id in ids]
+    U = [filter(in(required), unfinished) for unfinished in U]
+    Z = collect(zip(ids, U))
+    Z = filter(t -> !isempty(last(t)), Z)
+    return [Unfinished(id, unfinished) for (id, unfinished) in Z]
+end
+
 end # module
