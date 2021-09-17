@@ -33,7 +33,12 @@ auth_header(s::Schedule) = auth_header(s.project)
 
 # All values are coverted to string to avoid errors when using `active = false`.
 form(param::NamedTuple) = HTTP.Form(nt2dict(Codex.apply(string, param)))
-resp2json(r::Response) = JSON.parse(String(r.body))
+
+function resp2json(r::Response)::NamedTuple
+    dic = JSON.parse(String(r.body))
+    nt = NamedTuple([Symbol(a) => b for (a, b) in dic])
+    return nt
+end
 
 """
     list_schedules(p::Project) -> Vector{NamedTuple}
