@@ -6,14 +6,14 @@ charlie_mapping = Dict{String,Int}(
     "Altijd" => 5
 )
 
-charlie2int(s::String)::Int = charlie_mapping[s]
+charlie2int(s::AbstractString)::Int = charlie_mapping[s]
 
 """
-    charlie2int(q::Int, s::String)
+    charlie2int(q::Int, s::AbstractString)
 
 Convert `s` to Int for question number `q`.
 """
-function charlie2int(q::Int, s::String)::Int
+function charlie2int(q::Int, s::AbstractString)::Int
     value = charlie2int(s)
     reversed_questions = [2, 4, 6]
     if q in reversed_questions

@@ -1,5 +1,10 @@
 module GitLab
 
+@info """
+    Loading src/gitlab.jl via Requires.jl. JSON2 wasn't added to Project.toml to avoid
+    compat issues in projects where GitLab isn't used.
+    """
+
 import JSON2
 
 using Codex
@@ -33,7 +38,8 @@ auth_header(s::Schedule) = auth_header(s.project)
 
 # All values are coverted to string to avoid errors when using `active = false`.
 form(param::NamedTuple) = HTTP.Form(nt2dict(Codex.apply(string, param)))
-json(r::Response) = JSON2.read(String(r.body))
+
+resp2json(r::Response) = JSON2.read(String(r.body))
 
 """
     list_schedules(p::Project) -> Vector{NamedTuple}
@@ -45,7 +51,8 @@ For details, see
 function list_schedules(p::Project)::Vector{NamedTuple}
     endpoint = "$(project_url(p))/pipeline_schedules"
     r = HTTP.request("GET", endpoint, auth_header(p))
-    list = json(r)
+    list = resp2json(r)
+    return list
 end
 n_schedules(p::Project) = length(GitLab.list_schedules(p))
 
@@ -58,11 +65,11 @@ For `param`, see
 function create_schedule(p::Project, param::NamedTuple)::NamedTuple
     endpoint = "$(project_url(p))/pipeline_schedules"
     r = HTTP.request("POST", endpoint, auth_header(p), form(param))
-    nt = json(r)
+    nt = resp2json(r)
     for key in keys(param)
         @assert param[key] == nt[key] "$key: $(param[key]) != $(nt[key])"
     end
-    nt
+    return nt
 end
 
 """
@@ -72,7 +79,7 @@ Deletes `schedule_id` for `project_id`.
 """
 function delete_schedule(s::Schedule)::NamedTuple
     r = HTTP.request("DELETE", schedule_url(s), auth_header(s))
-    json(r)
+    return resp2json(r)
 end
 
 """
@@ -86,7 +93,7 @@ are deleted via `enforce_schedules`.
 function create_schedule_variable(s::Schedule, param::NamedTuple)::NamedTuple
     endpoint = "$(schedule_url(s))/variables"
     r = HTTP.request("POST", endpoint, auth_header(s), form(param))
-    nt = json(r)
+    nt = resp2json(r)
     @assert param[:value] == nt[:value]
     nt
 end
@@ -137,19 +144,19 @@ end
 function list_variables(p::Project)::Vector
     endpoint = "$(project_url(p))/variables"
     r = HTTP.request("GET", endpoint, auth_header(p))
-    json(r)
+    resp2json(r)
 end
 
 function delete_variable(p::Project, key::String)::NamedTuple
     endpoint = "$(project_url(p))/variables/$key"
     r = HTTP.request("DELETE", endpoint, auth_header(p))
-    json(r)
+    resp2json(r)
 end
 
 function create_variable(p::Project, param::NamedTuple)::NamedTuple
     endpoint = "$(project_url(p))/variables"
     r = HTTP.request("POST", endpoint, auth_header(p), form(param))
-    json(r)
+    resp2json(r)
 end
 
 """
