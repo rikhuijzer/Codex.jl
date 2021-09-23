@@ -10,6 +10,22 @@ struct Items
     reversed::Array{Int,1}
 end
 
+const NATO_NAMES = [
+    "alfa",
+    "bravo",
+    "charlie",
+    "delta",
+    "echo",
+    "foxtrot",
+    "golf",
+    "hotel",
+    "india",
+    "julliet",
+    "kilo",
+    "lima",
+    "mike"
+]
+
 reverse(x::Int) = 6 - x
 reverse(x::Missing) = missing
 
