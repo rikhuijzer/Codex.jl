@@ -21,7 +21,7 @@ export
 
 Copies CSV at `path` into memory.
 """
-read_csv(path; delim=',')::DataFrame = CSV.File(path, delim=delim) |> DataFrame
+read_csv(path; delim=',')::DataFrame = CSV.read(path, DataFrame; delim, stringtype=String)
 
 """
     responses(dir::String)::Dict{String,DataFrame}
