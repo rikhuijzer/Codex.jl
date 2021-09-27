@@ -26,7 +26,7 @@ function read_csv(path; delim=',')::DataFrame
         CSV.read(path, DataFrame; delim, stringtype=String)
     catch
         # CSV version 0.8.
-        CSV.read(path, DataFrame; delim, stringtype=String)
+        CSV.read(path, DataFrame; delim)
     end
 end
 
