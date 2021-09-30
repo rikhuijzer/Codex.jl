@@ -48,7 +48,7 @@ function mike2scores(df::DataFrame)
     new_df[:, :coping_flexibility] = get_scores(new_df, coping_flexibility)
     new_df[:, :emotional_stability] = get_scores(new_df, emotional_stability)
     new_df[:, :optimism] = get_scores(new_df, optimism)
-    new_df[:, :social_competence] = get_scores(new_df, optimism)
+    new_df[:, :social_competence] = get_scores(new_df, social_competence)
     new_df[:, :self_efficacy] = get_scores(new_df, self_efficacy)
     new_df[:, :self_reflection] = get_scores(new_df, self_reflection)
 
