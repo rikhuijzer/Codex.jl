@@ -108,12 +108,8 @@ Returns a DataFrame with rows `{ id, r...}` where `id` is a long identifier and 
 function responses(data_dir::String, nato_name::String)::DataFrame
     responses_dir = joinpath(data_dir, "responses")
     responses_file = joinpath(responses_dir, "$nato_name.csv")
-    responses_data = try
-        CSV.read(responses_file, DataFrame; delim=';', stringtype=String)
-    catch
-        # CSV.jl 0.8.
-        CSV.read(responses_file, DataFrame; delim=';')
-    end
+    responses_data = Codex.TransformExport.read_csv(responses_file, delim=';')
+
     # To speed up further processing.
     Codex.TransformExport.rm_timing!(responses_data)
     Codex.TransformExport.rm_boring_timestamps!(responses_data)
