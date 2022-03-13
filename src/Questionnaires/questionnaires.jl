@@ -289,9 +289,12 @@ function first_measurement(raw_dir::AbstractString, nato_name::AbstractString)
         (raw_dir, "2020-first", "graduates"),
         (raw_dir, "2020-first", "dropouts-medical"),
         (raw_dir, "2020-first", "dropouts-non-medical"),
-        (raw_dir, "2021-march-first", "graduates"),
-        (raw_dir, "2021-march-first", "dropouts-medical"),
-        (raw_dir, "2021-march-first", "dropouts-non-medical"),
+        (raw_dir, "2021-03", "graduates"),
+        (raw_dir, "2021-03", "dropouts-medical"),
+        (raw_dir, "2021-03", "dropouts-non-medical"),
+        (raw_dir, "2021-08", "graduates"),
+        (raw_dir, "2021-08", "dropouts-medical"),
+        (raw_dir, "2021-08", "dropouts-non-medical"),
     ]
     measurement = 1
     function helper(dir, cohort_dir, group)

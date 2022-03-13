@@ -5,7 +5,7 @@ using DataFrames
 
 # This one is not tested since it uses the same method as inspire.jl.
 
-export 
+export
     india2scores
 
 # It seems that this questionnaire is the same for 2018, 2019 and 2020.
