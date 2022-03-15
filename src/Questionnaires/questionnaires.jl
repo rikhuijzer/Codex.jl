@@ -214,6 +214,7 @@ Validate "dropouts.csv".
 """
 function validate_dropouts(df::DataFrame)
     disallowmissing!(df, :dropout)
+    # Test whether a dropout reason is given when dropout=true.
     valid(dropout_reason::Missing, dropout::Bool) = !dropout
     valid(dropout_reason::String, dropout::Bool) = dropout
     invs = subset(df, [:dropout_reason, :dropout] => ByRow(!valid))
