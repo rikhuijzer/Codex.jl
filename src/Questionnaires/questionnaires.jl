@@ -102,8 +102,6 @@ transformation_map = Dict{String,Function}(
 )
 
 """
-    responses(data_dir::String, nato_name::String)::DataFrame
-
 Responses for questionnaire `nato_name` as contained in directory `data_dir`.
 Returns a DataFrame with rows `{ id, r...}` where `id` is a long identifier and not the one from the backend.
 """
@@ -120,6 +118,7 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     people_file = joinpath(data_dir, "people.csv")
     people_data = Codex.TransformExport.read_csv(people_file, delim=';')
 
+    # Fix data.
     if nato_name != "mike" || !contains(data_dir, "2018")
         select!(people_data, :person_id => :backend_id, :first_name => :id)
         rename!(responses_data, Dict(:filled_out_by_id => "backend_id"))
@@ -137,8 +136,8 @@ function responses(data_dir::String, nato_name::String)::DataFrame
     end
 
     if nato_name in keys(transformation_map)
-        f = transformation_map[nato_name]
-        joined = f(joined)
+        transformer = transformation_map[nato_name]
+        joined = transformer(joined)
     end
     return joined
 end
@@ -251,7 +250,7 @@ julia> select(first(df, 5), Not([:id, :completed_at]))
    5 │ dropouts        12          5
 ```
 """
-function responses(data_dir::String, nato_name::String, group::String; measurement=999)
+function responses(data_dir::String, nato_name::String, group::String; measurement=999)::DataFrame
     responses_data = responses(data_dir, nato_name)
 
     cohort = parse(Int, match(r"[0-9]{4}", data_dir).match)
@@ -299,6 +298,10 @@ function first_measurement(raw_dir::AbstractString, nato_name::AbstractString)
         (raw_dir, "2021-08", "dropouts-medical"),
         (raw_dir, "2021-08", "dropouts-non-medical"),
     ]
+    # Responses are missing for this year.
+    if nato_name == "hotel"
+        filter!(p -> !contains(p[2], "2018"), parameters)
+    end
     measurement = 1
     function helper(dir, cohort_dir, group)
         data_dir = joinpath(dir, cohort_dir)
