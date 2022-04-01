@@ -60,6 +60,7 @@ include("toughness.jl")
 include("optimism.jl")
 include("coping.jl")
 include("inspire.jl")
+include("hotel.jl")
 
 """
     get_hnd(path::AbstractString)::DataFrame
@@ -92,6 +93,7 @@ transformation_map = Dict{String,Function}(
     "echo" => self_efficacy2scores,
     "foxtrot" => Intelligence.foxtrot2scores,
     "golf" => Intelligence.golf2scores,
+    "hotel" => hotel2scores,
     "india" => Toughness.india2scores,
     "julliet" => Coping.julliet2scores,
     "kilo" => Optimism.kilo2scores,
