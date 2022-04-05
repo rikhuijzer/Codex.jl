@@ -2,6 +2,22 @@
 # Mindset [Dweck, 2013], fear of failure [Thrash & Elliot, 2003], basic motives [van Yperen et al., 2014], motivation type [Pelletier et al., 2013], and approach-avoidance temperament [Elliot & Thrash, 2010]
 
 """
+    add_mindsets!(df::DataFrame)
+
+Add motivation columns and remove the items.
+All items are 1 (helemaal mee oneens) to 6 (helemaal mee eens) and v4 and v6 are reversed.
+Verified on 2019-first and 2020-first.
+"""
+function add_mindsets!(df::DataFrame)
+    reverse(x::Int) = 7 - x
+    df.v4 = reverse.(df.v4)
+    df.v6 = reverse.(df.v6)
+    Q = ["v$i" for i in 1:6]
+    select!(df, Q => ByRow(+) => :mindset, Not(Q))
+    return df
+end
+
+"""
     add_motivation_type!(df::DataFrame)::DataFrame
 
 Add type motivatie columns and remove the items.
@@ -17,6 +33,8 @@ Intrinsic motivation (2,10,14)
 ```
 
 The items start at 48 for all versions.
+
+Also, 2019 to 2020 go from 1 to 7 so let's say all.
 """
 function add_motivation_type!(df::DataFrame)::DataFrame
     questions = Dict(
@@ -29,7 +47,6 @@ function add_motivation_type!(df::DataFrame)::DataFrame
     )
     for key in keys(questions)
         Q = ["v$(43 + i)" for i in questions[key]]
-        dropmissing!(df, Q)
         select!(df, Q => ByRow(+) => key, Not(Q))
     end
     return df
@@ -52,12 +69,10 @@ Also for 2020 first.
 function add_temperaments!(df)
     let
         Q = ["v$(61 + i)" for i in [2, 4, 5, 8, 10, 11]]
-        dropmissing!(df, Q)
         select!(df, Q => ByRow(+) => :approach_temperament, Not(Q))
     end
     let
         Q = ["v$(61 + i)" for i in [1, 3, 6, 7, 9, 12]]
-        dropmissing!(df, Q)
         select!(df, Q => ByRow(+) => :avoidance_temperament, Not(Q))
     end
     return df
@@ -65,6 +80,7 @@ end
 
 function hotel2scores(hotel::DataFrame)::DataFrame
     df = copy(hotel)
+    add_mindsets!(df)
     add_motivation_type!(df)
     add_temperaments!(df)
     return df
