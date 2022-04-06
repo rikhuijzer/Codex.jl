@@ -18,6 +18,51 @@ function add_mindsets!(df::DataFrame)
 end
 
 """
+    add_basic_motives!(df::DataFrame)
+
+Add basale drijfveren columns and remove the items.
+All items are 1 (helemaal niet) to (in extreem sterke mate).
+
+```
+1-4 autonomie;
+5-8 verbondenheid;
+9-12 competentie;
+13-16 structuur;
+17-20 macht;
+21-24 maatschappelijke verantwoordelijkheid;
+25-28 status
+```
+"""
+function add_basic_motives!(df::DataFrame)
+    questions = Dict(
+        :autonomie => 1:4,
+        :verbondenheid => 5:8,
+        :competentie => 9:12,
+        :structuur => 13:16,
+        :macht => 17:20,
+        :maatschappelijke_verantwoordelijkheid => 21:24,
+        :status => 25:28
+    )
+    for key in keys(questions)
+        Q = ["v$(6 + i)" for i in questions[key]]
+        select!(df, Q => ByRow(+) => key, Not(Q))
+    end
+    return df
+end
+
+"""
+    add_fear_of_failure(df::DataFrame)
+
+Add fear of failure (faalangst) columns and remove the items.
+"""
+function add_fear_of_failure!(df::DataFrame)
+    Q = ["v$(34 + i)" for i in 1:9]
+    name = :fear_of_failure
+    select!(df, Q => ByRow(+) => name, Not(Q))
+    return df
+end
+
+"""
     add_motivation_type!(df::DataFrame)::DataFrame
 
 Add type motivatie columns and remove the items.
@@ -81,6 +126,8 @@ end
 function hotel2scores(hotel::DataFrame)::DataFrame
     df = copy(hotel)
     add_mindsets!(df)
+    add_basic_motives!(df)
+    add_fear_of_failure!(df)
     add_motivation_type!(df)
     add_temperaments!(df)
     return df
