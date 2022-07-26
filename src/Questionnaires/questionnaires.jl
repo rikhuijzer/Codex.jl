@@ -376,7 +376,7 @@ function join_vo_questionnaires(raw_dir::String)::DataFrame
     df = Codex.Questionnaires.join_questionnaires(
         raw_dir,
         questionnaires,
-        ["graduates", "operators", "dropouts-non-medical"]
+        ["graduates", "operators", "dropouts-non-medical", "dropouts-medical"]
     )
     df[:, :binary_group] = [x == "graduates" || x == "operators" ? 1 : 0 for x in df[:, :group]]
     df
