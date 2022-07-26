@@ -297,6 +297,10 @@ function first_measurement(raw_dir::AbstractString, nato_name::AbstractString)
         (raw_dir, "2021-08", "graduates"),
         (raw_dir, "2021-08", "dropouts-medical"),
         (raw_dir, "2021-08", "dropouts-non-medical"),
+        (raw_dir, "2022-03", "graduates")
+        # TODO: Dropouts nog even een categorie geven of deze code eindelijk omschrijven.
+        # (raw_dir, "2022-03", "dropouts-medical"),
+        # (raw_dir, "2021-03", "dropouts-non-medical"),
     ]
     # Responses are missing for this year.
     if nato_name == "hotel"

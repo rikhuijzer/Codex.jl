@@ -21,7 +21,7 @@ end
     add_basic_motives!(df::DataFrame)
 
 Add basale drijfveren columns and remove the items.
-All items are 1 (helemaal niet) to (in extreem sterke mate).
+All items are 1 (helemaal niet) to 7 (in extreem sterke mate).
 
 ```
 1-4 autonomie;
@@ -32,6 +32,7 @@ All items are 1 (helemaal niet) to (in extreem sterke mate).
 21-24 maatschappelijke verantwoordelijkheid;
 25-28 status
 ```
+So, all domains contain 4 items.
 """
 function add_basic_motives!(df::DataFrame)
     questions = Dict(
@@ -54,6 +55,7 @@ end
     add_fear_of_failure(df::DataFrame)
 
 Add fear of failure (faalangst) columns and remove the items.
+9 items from 1 (helemaal mee oneens) to 5 (helemaal mee eens).
 """
 function add_fear_of_failure!(df::DataFrame)
     Q = ["v$(34 + i)" for i in 1:9]
