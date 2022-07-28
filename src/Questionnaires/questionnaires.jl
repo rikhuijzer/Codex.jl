@@ -364,24 +364,6 @@ function join_questionnaires(raw_dir::String, questionnaires::Array{String,1}, g
     reduce(ysf_join, questionnaires)
 end
 
-"""
-    join_vo_questionnaires(raw_dir::String)::DataFrame
-
-Combine information from multiple questionnaires to allow model fitting.
-"""
-function join_vo_questionnaires(raw_dir::String)::DataFrame
-    questionnaires = sort(collect(keys(transformation_map)))
-    # Ignoring delta since only two operators participated in it.
-    questionnaires = filter(!in(["bravo", "delta"]), questionnaires)
-    df = Codex.Questionnaires.join_questionnaires(
-        raw_dir,
-        questionnaires,
-        ["graduates", "operators", "dropouts-non-medical", "dropouts-medical"]
-    )
-    df[:, :binary_group] = [x == "graduates" || x == "operators" ? 1 : 0 for x in df[:, :group]]
-    df
-end
-
 function csv_files(dir::String)
     return filter(endswith(".csv"), readdir(dir))
 end
@@ -456,6 +438,46 @@ function unfinished_info(responses_dir; required::Union{Missing,Vector{String}}=
     Z = collect(zip(ids, U))
     Z = filter(t -> !isempty(last(t)), Z)
     return [Unfinished(id, unfinished) for (id, unfinished) in Z]
+end
+
+"Return a `df` where each column name starts with `\$prefix_`."
+function _prefix!(df::DataFrame, prefix::String)
+    new_names = String[string(prefix, '_', name)::String for name in names(df)]
+    return rename!(df, new_names)
+end
+
+"""
+    join_vo_questionnaires(raw_dir::String)
+
+Combine information from multiple questionnaires to allow model fitting.
+"""
+function join_vo_questionnaires(raw_dir::String)
+    questionnaires = sort(collect(keys(transformation_map)))
+    # Ignoring delta since only two operators participated in it.
+    questionnaires = filter(!in(["bravo", "delta"]), questionnaires)
+    cohort_dfs = DataFrame[]
+    data_dirs = readdir(raw_dir; join=true)
+    for data_dir in data_dirs
+        isfile(data_dir) && continue
+        if basename(data_dir) in [".git", "2018-second", "2018-first", "2019-intermediate", "2020-second"]
+            continue
+        end
+        df = nothing # DataFrame[]
+        for questionnaire in questionnaires
+            resp = responses(data_dir, questionnaire)
+            subset = _prefix!(resp, questionnaire)
+            rename!(subset, "$(questionnaire)_id" => "id")
+            if isnothing(df)
+                df = subset
+            else
+                df = leftjoin(df, subset; on=:id)
+            end
+        end
+        df[:, :cohort] = fill(basename(data_dir), nrow(df))
+        select!(df, :cohort, :id, :)
+        push!(cohort_dfs, df)
+    end
+    return reduce(vcat, cohort_dfs)
 end
 
 end # module
