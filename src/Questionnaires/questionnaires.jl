@@ -479,6 +479,7 @@ function join_vo_questionnaires(raw_dir::String)
             end
         end
         if isnothing(df) || isempty(df)
+            @warn "No responses found after joining the questionnaires in $data_dir"
             continue
         end
         df[:, :cohort] = fill(basename(data_dir), nrow(df))
