@@ -105,9 +105,10 @@ transformation_map = Dict{String,Function}(
 Responses for questionnaire `nato_name` as contained in directory `data_dir`.
 Returns a DataFrame with rows `{ id, r...}` where `id` is a long identifier and not the one from the backend.
 """
-function responses(data_dir::String, nato_name::String)::DataFrame
+function responses(data_dir::String, nato_name::String)::Union{Nothing,DataFrame}
     responses_dir = joinpath(data_dir, "responses")
     responses_file = joinpath(responses_dir, "$nato_name.csv")
+    isfile(responses_file) || return nothing
     responses_data = Codex.TransformExport.read_csv(responses_file, delim=';')
 
     # To speed up further processing.
@@ -135,7 +136,7 @@ function responses(data_dir::String, nato_name::String)::DataFrame
         select!(joined, Not(:locale))
     end
 
-    if nato_name in keys(transformation_map)
+    if nato_name in keys(transformation_map) && !isempty(joined)
         transformer = transformation_map[nato_name]
         joined = transformer(joined)
     end
@@ -454,7 +455,7 @@ Combine information from multiple questionnaires to allow model fitting.
 function join_vo_questionnaires(raw_dir::String)
     questionnaires = sort(collect(keys(transformation_map)))
     # Ignoring delta since only two operators participated in it.
-    questionnaires = filter(!in(["bravo", "delta"]), questionnaires)
+    filter!(!in(["bravo", "delta"]), questionnaires)
     cohort_dfs = DataFrame[]
     data_dirs = readdir(raw_dir; join=true)
     for data_dir in data_dirs
@@ -465,6 +466,10 @@ function join_vo_questionnaires(raw_dir::String)
         df = nothing # DataFrame[]
         for questionnaire in questionnaires
             resp = responses(data_dir, questionnaire)
+            if isnothing(resp) || isempty(resp)
+                @warn "No responses found for $questionnaire in $data_dir"
+                continue
+            end
             subset = _prefix!(resp, questionnaire)
             rename!(subset, "$(questionnaire)_id" => "id")
             if isnothing(df)
@@ -472,6 +477,9 @@ function join_vo_questionnaires(raw_dir::String)
             else
                 df = leftjoin(df, subset; on=:id)
             end
+        end
+        if isnothing(df) || isempty(df)
+            continue
         end
         df[:, :cohort] = fill(basename(data_dir), nrow(df))
         select!(df, :cohort, :id, :)

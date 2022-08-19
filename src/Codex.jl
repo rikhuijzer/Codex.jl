@@ -1,5 +1,9 @@
 module Codex
 
+if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@max_methods"))
+    @eval Base.Experimental.@max_methods 1
+end
+
 using Requires: @require
 
 using Reexport
