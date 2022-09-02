@@ -448,11 +448,11 @@ function _prefix!(df::DataFrame, prefix::String)
 end
 
 """
-    join_vo_questionnaires(raw_dir::String)
+    join_vo_questionnaires(raw_dir::String; omit_mike=true)
 
 Combine information from multiple questionnaires to allow model fitting.
 """
-function join_vo_questionnaires(raw_dir::String)
+function join_vo_questionnaires(raw_dir::String; omit_mike::Bool=true)
     questionnaires = sort(collect(keys(transformation_map)))
     # Ignoring delta since only two operators participated in it.
     filter!(!in(["bravo", "delta"]), questionnaires)
@@ -465,6 +465,7 @@ function join_vo_questionnaires(raw_dir::String)
         end
         df = nothing # DataFrame[]
         for questionnaire in questionnaires
+            string(questionnaire) == "mike" && continue
             resp = responses(data_dir, questionnaire)
             if isnothing(resp) || isempty(resp)
                 @warn "No responses found for $questionnaire in $data_dir"
