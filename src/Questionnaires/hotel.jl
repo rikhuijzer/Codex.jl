@@ -39,10 +39,10 @@ function add_basic_motives!(df::DataFrame)
         :autonomie => 1:4,
         :verbondenheid => 5:8,
         :competentie => 9:12,
-        :structuur => 13:16,
-        :macht => 17:20,
-        :maatschappelijke_verantwoordelijkheid => 21:24,
-        :status => 25:28
+        :structuur => 13:16, # minder bekend
+        :macht => 17:20, # minder bekend
+        :maatschappelijke_verantwoordelijkheid => 21:24, # minder bekend
+        :status => 25:28 # minder bekend
     )
     for key in keys(questions)
         Q = ["v$(6 + i)" for i in questions[key]]
@@ -86,11 +86,11 @@ Also, 2019 to 2020 go from 1 to 7 so let's say all.
 function add_motivation_type!(df::DataFrame)::DataFrame
     questions = Dict(
         :amotivation => [3, 11, 16],
-        :external_regulation => [4, 8, 13],
-        :introjected_regulation => [7, 12, 18],
-        :identified_regulation => [5, 9, 15],
-        :integrated_regulation => [1, 6, 17],
-        :intrinsic_motivation => [2, 10, 14]
+        :external_regulation => [4, 8, 13], # controlled
+        :introjected_regulation => [7, 12, 18], # controlled
+        :identified_regulation => [5, 9, 15], # autonomous
+        :integrated_regulation => [1, 6, 17], # autonomous
+        :intrinsic_motivation => [2, 10, 14] # autonomous
     )
     for key in keys(questions)
         Q = ["v$(43 + i)" for i in questions[key]]
