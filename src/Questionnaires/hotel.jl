@@ -1,5 +1,6 @@
 # Hotel is a combination of many questionnaires:
 # Mindset [Dweck, 2013], fear of failure [Thrash & Elliot, 2003], basic motives [van Yperen et al., 2014], motivation type [Pelletier et al., 2013], and approach-avoidance temperament [Elliot & Thrash, 2010]
+# Some of these questions are mostly theoretically interesting and can be omitted when only focusing on prediction.
 
 """
     add_mindsets!(df::DataFrame)
@@ -33,16 +34,18 @@ All items are 1 (helemaal niet) to 7 (in extreem sterke mate).
 25-28 status
 ```
 So, all domains contain 4 items.
+
+Note that autonomy, connectedness, and competence are very well known while the others are not.
 """
 function add_basic_motives!(df::DataFrame)
     questions = Dict(
         :autonomie => 1:4,
         :verbondenheid => 5:8,
         :competentie => 9:12,
-        :structuur => 13:16, # minder bekend
-        :macht => 17:20, # minder bekend
-        :maatschappelijke_verantwoordelijkheid => 21:24, # minder bekend
-        :status => 25:28 # minder bekend
+        :structuur => 13:16, # Less known.
+        :macht => 17:20, # Less known.
+        :maatschappelijke_verantwoordelijkheid => 21:24, # Less known.
+        :status => 25:28 # Less known.
     )
     for key in keys(questions)
         Q = ["v$(6 + i)" for i in questions[key]]
@@ -82,15 +85,21 @@ Intrinsic motivation (2,10,14)
 The items start at 48 for all versions.
 
 Also, 2019 to 2020 go from 1 to 7 so let's say all.
+
+Nico has a book in which at Figure 12.1a the self-determination theory is displayed:
+
+Amotivation     Controlled Motivation   Controlled Motivation   Autonomous Motivation   Autonomous Motivation   Autonomous Motivation
+Amotivation     Extrinsic Motivation    Extrinsic Motivation    Extrinsic Motivation    Extrinsic Motivation    Intrinsic Motivation
+Amotivation     External Regulation     Introjected Regulation  Identified Regulation   Integrated Regulation   Intrinsic Regulation
 """
 function add_motivation_type!(df::DataFrame)::DataFrame
     questions = Dict(
         :amotivation => [3, 11, 16],
-        :external_regulation => [4, 8, 13], # controlled
-        :introjected_regulation => [7, 12, 18], # controlled
-        :identified_regulation => [5, 9, 15], # autonomous
-        :integrated_regulation => [1, 6, 17], # autonomous
-        :intrinsic_motivation => [2, 10, 14] # autonomous
+        :external_regulation => [4, 8, 13], # Controlled Motivation
+        :introjected_regulation => [7, 12, 18], # Controlled Motivation
+        :identified_regulation => [5, 9, 15], # Autonomous Motivation
+        :integrated_regulation => [1, 6, 17], # Autonomous Motivation
+        :intrinsic_motivation => [2, 10, 14] # Autonomous Motivation
     )
     for key in keys(questions)
         Q = ["v$(43 + i)" for i in questions[key]]
@@ -112,6 +121,8 @@ Avoidance temperament = item1+item3+item6+item7+item9+item12
 
 And according to 2019-first/questionnaires/hotel.csv the items start at 62.
 Also for 2020 first.
+
+These variables should not be combined according to Nico.
 """
 function add_temperaments!(df)
     let

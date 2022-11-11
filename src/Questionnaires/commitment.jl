@@ -41,6 +41,13 @@ end
 score_2018(responses...) = sum(ans2num.(responses, 1:5, 2018))
 score_2019(responses...) = sum(ans2num.(responses, 2:6, 2019))
 
+"""
+    delta2scores(df::DataFrame)
+
+Score the commitment questionnaire (delta).
+
+Achievable is based on only one question so can optionally be omitted.
+"""
 function delta2scores(df::DataFrame)
     if is_2018(df)
         transform!(df, [:v1, :v2, :v3, :v4, :v5] => ByRow(score_2018) => :score)

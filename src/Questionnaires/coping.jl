@@ -27,6 +27,8 @@ For Julliet, 2018 and 2019 are the same.
 For more information, see the e-mail with the subject `Julliet`.
 
 This file is not tested in-depth, because the procedure is the same as delta.
+
+These variables can probably not be combined.
 """
 function julliet2scores(df::DataFrame)
     cols = [

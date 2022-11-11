@@ -52,6 +52,14 @@ interpersonal_confidence = Items(
     [28, 46]
 )
 
+"""
+    india2scores(df::DataFrame)
+
+Score mental toughness (india).
+This thing is sold as 4 C's: Challenge, Commitment, Control, and Confidence.
+
+Vaughan et al. (2018) caution against the use of this measure with elite athletes.
+"""
 function india2scores(df::DataFrame)
     v_names = filter(contains(r"v[0-9]+"), names(df))
     for name in v_names
@@ -60,19 +68,22 @@ function india2scores(df::DataFrame)
         select!(df, :, "$(name)_new" => name)
     end
 
-    get_scores_part(items) = get_scores(df, items; average = false)
-    df[:, :challenge] = get_scores_part(challenge)
-    df[:, :commitment] = get_scores_part(commitment)
-    df[:, :emotional_control] = get_scores_part(emotional_control)
-    df[:, :life_control] = get_scores_part(life_control)
-    df[:, :confidence_in_abilities] = get_scores_part(confidence_in_abilities)
-    df[:, :interpersonal_confidence] = get_scores_part(interpersonal_confidence)
+    let
+        scores(items::Items) = get_scores(df, items; average=false)
+
+        df[:, :challenge] = scores(challenge) # Challenge.
+        df[:, :commitment] = scores(commitment) # Commitment.
+        df[:, :emotional_control] = scores(emotional_control) # Control.
+        df[:, :life_control] = scores(life_control) # Control.
+        df[:, :confidence_in_abilities] = scores(confidence_in_abilities) # Confidence.
+        df[:, :interpersonal_confidence] = scores(interpersonal_confidence) # Confidence.
+    end
 
     select!(df, :id, :completed_at,
         :challenge, :commitment, :emotional_control,
         :life_control, :confidence_in_abilities, :interpersonal_confidence
     )
-    df 
+    return df
 end
 
 end # module
